@@ -15,7 +15,8 @@ def two_arm_ik(length_1, length_2, point):
     relative_angle = math.asin(point[1] / distance)
 
     if distance > length_1 + length_2:
-        return None
+        print("Attempting to get angles when arm cannot reach")
+        return 0, 0
     # Calculate the x value of the intersection points
     x1 = (length_1 ** 2 - length_2 ** 2 + distance ** 2) / (distance * 2)
     x2 = distance - x1
@@ -31,13 +32,11 @@ def two_arm_ik(length_1, length_2, point):
 def n_jointed_arm_ik(lengths, angles, index, point):
     pass
     
-POINT = [4, 6]
+POINT = [4, 0]
 L = [4, 1]
 A = [0] * len(L)
 A = two_arm_ik(L[0], L[1], POINT)
-if A == None:
-    print("Could not find ik solution")
-else:
-    print("Output: ")
-    for a in A:
-        print(a * 180 / 3.14159)
+
+print("Output: ")
+for a in A:
+    print(a * 180 / 3.14159)
