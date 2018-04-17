@@ -1,5 +1,31 @@
 import math
 
+def two_joint_point_validity(l_1, l_2, d):
+    '''
+    return True if a two jointed arm with arms of lengths l_1 and l_2 could
+    potentially reach a point that is distance d away
+    '''
+    r_1 = l_1 + l_2
+    r_2 = l_1 - l_2
+    if min([r_1, r_2]) <= d and d <= max([r_1, r_2]):
+        # If distance parameter d is within range
+        return True
+    else:
+        return False
+def N_joint_point_validity(L, d):
+    '''
+    returns True if an N-jointed arm with lengths parameter array L
+    can reach a point at distance parameter d
+    '''
+    lengths = L[:]
+    lengths.sort(reverse=True)
+    for i in range(1, len(lengths)-1):
+        large = sum(lengths[:i])
+        small = sum(lengths[i:])
+        if two_joint_point_validity(large, small, d):
+            return True
+    return False
+
 def two_arm_ik(length_1, length_2, point):
     '''
     returns angles for a two arm inverse kinematics solution,
@@ -38,34 +64,3 @@ def n_jointed_arm_ik(lengths, angles, index, point):
     pass
     '''
     return resulting_angles
-
-
-def two_joint_point_validity(l_1, l_2, d):
-    '''
-    return True if a two jointed arm with arms of lengths l_1 and l_2 could
-    potentially reach a point that is distance d away
-    '''
-    r_1 = l_1 + l_2
-    r_2 = l_1 - l_2
-    if min([r_1, r_2]) <= d and d <= max([r_1, r_2]):
-        # If distance parameter d is within range
-        return True
-    else:
-        return False
-def N_joint_point_validity(L, d):
-    '''
-    returns True if an N-jointed arm with lengths parameter array L
-    can reach a point at distance parameter d
-    '''
-    for binary_tracker in range(2**len(L)):
-        lengths = L[:]
-        for i in range(len(L)):
-            if binary_tracker & (1 << i):
-                lengths[i] *= -1
-        lengths.sort(reverse=True)
-        for i in range(1, len(lengths)-1):
-            large = sum(lengths[:i])
-            small = sum(lengths[i:])
-            if two_joint_point_validity(large, small, d):
-                return True
-    return False
