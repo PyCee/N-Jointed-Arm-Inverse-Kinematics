@@ -29,15 +29,28 @@ def two_arm_ik(length_1, length_2, point):
     return angle_1, angle_2
 
 def n_jointed_arm_ik(lengths, angles, index, point):
-    pass
+    if index >= len(lengths) - 1:
+        print("This should never run")
     
-POINT = [4, 6]
-L = [4, 1]
-A = [0] * len(L)
+    resulting_angles = [0] * len(lengths)
+    '''
+    for i in range(index-1):
+    pass
+    '''
+    return resulting_angles
+   
+    
+POINT = [1, 0]
+L = [5, 5]
 A = two_arm_ik(L[0], L[1], POINT)
 if A == None:
     print("Could not find ik solution")
 else:
     print("Output: ")
-    for a in A:
-        print(a * 180 / 3.14159)
+    recreated_point = [0, 0]
+    for index in range(len(L)):
+        print(A[index] * 180 / 3.14159)
+        absolute_angle = sum(A[:index+1])
+        recreated_point[0] += L[index] * math.cos(absolute_angle)
+        recreated_point[1] += L[index] * math.sin(absolute_angle)
+    print("For error checking, these angles+lengths recreated: " + str(recreated_point))
