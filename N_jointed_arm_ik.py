@@ -1,35 +1,66 @@
 import math
+import sys
 
-def magnitude(point):
-    return math.sqrt(point[0]**2 + point[1]**2)
+class Vector:
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
+    def __repr__(self):
+        return "(" + str(round(self.x, 3)) + ", " + str(round(self.y, 3)) + ")"
+    def scale(self, scalar):
+        return Vector(self.x * scalar, self.y * scalar)
+    def add(self, vec):
+        return Vector(self.x + vec.x, self.y + vec.y)
+    def subtract(self, vec):
+        return self.add(vec.scale(-1.0))
+    def magnitude(self):
+        return math.sqrt(self.x**2 + self.y**2)
+    def equals(self, vec):
+        return math.fabs(self.x - vec.x) < 0.01 and \
+            math.fabs(self.y - vec.y) < 0.01
+    
 
-def two_joint_point_validity(l_1, l_2, d):
+def two_joint_point_validity(length_1, length_2, point):
     '''
-    return True if a two jointed arm with arms of lengths l_1 and l_2 could
-    potentially reach a point at distance d
+    return True if a two jointed arm with arms of lengths
+    length_1 and length_2 can reach point
 
-    l_1 is expected to be a lengths made up of larger individual components
+    The valid range is length_2 away from length_1
     '''
-    r_1 = l_1 + l_2
-    r_2 = l_1 - l_2
-    if min([r_1, r_2]) <= d and d <= max([r_1, r_2]):
-        # If distance parameter d is within range
+    r_1 = length_1 + length_2
+    r_2 = length_1 - length_2
+    distance = point.magnitude()
+    if min([r_1, r_2]) <= distance and distance <= max([r_1, r_2]):
+        # If distance is within our valid range
         return True
     else:
         return False
-def n_joint_point_validity(L, d):
+def n_joint_point_validity(L, point):
     '''
     returns True if an N-jointed arm with lengths array L
-    can reach a point at distance d
+    can reach point
     '''
     lengths = L[:]
     lengths.sort(reverse=True)
     for i in range(1, len(lengths)-1):
         large = sum(lengths[:i])
         small = sum(lengths[i:])
-        if two_joint_point_validity(large, small, d):
+        if two_joint_point_validity(large, small, point):
             return True
     return False
+def recreate_point(lengths, angles):
+    recreated_point = Vector(0.0, 0.0)
+    for index in range(len(lengths)):
+        # For each index in [0, N-1]
+
+        # Get angle in world space (stored in local space)
+        absolute_angle = sum(angles[:index+1])
+
+        # Add the transformed length to the recreated_point
+        offset = Vector(lengths[index] * math.cos(absolute_angle),
+                        lengths[index] * math.sin(absolute_angle))
+        recreated_point = recreated_point.add(offset)
+    return recreated_point
 
 def two_jointed_arm_ik(length_1, length_2, point):
     '''
@@ -42,72 +73,74 @@ def two_jointed_arm_ik(length_1, length_2, point):
     of the circles. It finds the intersection point, and calculates
     the angles for each joint.
     '''
-    distance = magnitude(point) - 0.0000000000000005
-    relative_angle = math.asin(point[1] / distance)
+    x_neg = point.x < 0.0
+    distance = point.magnitude()
+    relative_angle = math.asin(point.y / distance)
+    if point.x < 0.0:
+        relative_angle = 3.14159 - relative_angle
 
-    if distance > length_1 + length_2:
-        print("distance (" + str(distance) + ") < length_1 (" + str(length_1) + \
-              ") + length_2 (" + str(length_2) + ")")
-        return None
+    length_1 *= 1.00000000001
+    length_2 *= 1.00000000001
+    if not two_joint_point_validity(max(length_1, length_2),
+                                    min(length_1, length_2), point):
+        print("ERROR::Two joint IK not valid::\n" + \
+              "\tlength_1, length_2: " + str(length_1) + ", " + str(length_2) + "\n" \
+              "\tdistance: " + str(distance))
+        sys.exit()
+        
     # Calculate the x value of the intersection points
-    x1 = (length_1 ** 2 - length_2 ** 2 + distance ** 2) / (distance * 2)
+    #x1 = (length_1 ** 2 - length_2 ** 2 + distance ** 2) / (distance * 2)
+    x1 = (distance**2 - length_2**2 + length_1**2) / (2 * distance)
     x2 = distance - x1
     # We use the lengths with the x values to calculate the
     #   x value on the unit circle, and use acos to get the angle
     base_1 = x1 / length_1
     base_2 = x2 / length_2
-    if base_1 < -1.0:
-        base_1 = -base_1 - 2.0
-        base_2 = -base_2 + 2.0
+    
     angle_1 = math.acos(base_1)
     angle_2 = -1.0 * math.acos(base_2)
-    
+        
     angle_1 += relative_angle
     angle_2 += relative_angle - angle_1
     return angle_1, angle_2
 
 def n_jointed_arm_ik(lengths, weight, point):
-    if not n_joint_point_validity(lengths, magnitude(point)):
+    if not n_joint_point_validity(lengths, point):
         print("Attempting to find joint solution where none exists")
         return None
+    
     resulting_angles = [0] * len(lengths)
     for index in range(len(lengths)-1):
-
-        # calculate multiplier based on weight
+        # Calculate multiplier based on weight
         mult = 1.0
         if index < len(lengths)-2:
-            hi = magnitude(point) / sum(lengths[index:])
-            lo = (magnitude(point) + lengths[index]) / sum(lengths[index+1:])
-            mult = lo + weight * (hi - lo)
-        
+            minimum_mult = point.magnitude() / sum(lengths[index:])
+            minimum_mult = min(minimum_mult, 1.0)
+            
+            maximum_mult = (point.magnitude()+lengths[index]) / sum(lengths[index+1:])
+            maximum_mult = min(maximum_mult, 1.0)
+            
+            mult = minimum_mult + weight * (maximum_mult - minimum_mult)
+            mult = min(mult, 1.0)
+
+        # Run a two jointed arm ik to find the angle for this joint
         a_1, a_2 = two_jointed_arm_ik(lengths[index] * mult,
                                       sum(lengths[index+1:]) * mult,
                                       point)
-        
-        # store angle values
+
+        # Store relative angle values
         resulting_angles[index] += a_1
         if index >= 1:
-            resulting_angles[index] -= resulting_angles[index-1]
+            resulting_angles[index] -= sum(resulting_angles[:index])
+            #resulting_angles[index] -= resulting_angles[index-1]
         if index == len(lengths)-2:
             resulting_angles[index+1] = a_2
             
-            
         # Subtract current progress to the point
         absolute_angle = sum(resulting_angles[:index+1])
-        point[0] -= lengths[index] * math.cos(absolute_angle)
-        point[1] -= lengths[index] * math.sin(absolute_angle)
+        offset = Vector(lengths[index] * math.cos(absolute_angle),
+                        lengths[index] * math.sin(absolute_angle))
+        point = point.subtract(offset)
+        point = point.scale(0.999999999)
     
     return resulting_angles
-
-def recreate_point(lengths, angles):
-    recreated_point = [0, 0]
-    for index in range(len(lengths)):
-        # For each index in [0, N-1]
-
-        # Get angle in world space (stored in local space)
-        absolute_angle = sum(angles[:index+1])
-
-        # Add the transformed length to the recreated_point
-        recreated_point[0] += lengths[index] * math.cos(absolute_angle)
-        recreated_point[1] += lengths[index] * math.sin(absolute_angle)
-    return recreated_point

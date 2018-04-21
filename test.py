@@ -1,27 +1,111 @@
-from N_jointed_arm_ik import n_joint_point_validity, n_jointed_arm_ik, two_jointed_arm_ik, recreate_point
+from N_jointed_arm_ik import n_joint_point_validity, n_jointed_arm_ik, two_jointed_arm_ik, recreate_point, Vector
 import math
+import sys
 
-POINT = [5, 0]
+
+print("2 Joint Validity Test:")
+POINT = Vector(5.0, 0)
 L = [10, 1]
-if n_joint_point_validity(L, math.sqrt(POINT[0]**2 + POINT[1]**2)) == False:
-    print("Succeded on the 2 joint validity test")
+if n_joint_point_validity(L, POINT) == False:
+    print("Success")
 else:
-    print("Failed on the 2 joint validity test")
+    print("Failure")
+    sys.exit()
 
-POINT = [0.5, 0]
+print("N Joint Validity Test:")
+POINT = Vector(0.5, 0)
 L = [2, 6, 5]
-if n_joint_point_validity(L, math.sqrt(POINT[0]**2 + POINT[1]**2)):
-    print("Succeded on the 3 joint validity test")
+if n_joint_point_validity(L, POINT):
+    print("Success")
 else:
-    print("Failed on the 3 joint validity test")
+    print("Failure")
+    sys.exit()
 
-POINT = [7, 0]
+print("2 Jointed Arm IK Solution #1:")
+POINT = Vector(7, 0)
 L = [3, 4]
-#A = two_jointed_arm_ik(L[0], L[1], POINT)
+A = two_jointed_arm_ik(L[0], L[1], POINT)
+if POINT.equals(recreate_point(L, A)):
+    print("Success")
+else:
+    print("Failure")
+    print(str(recreate_point(L, A)))
+    sys.exit()
 
-POINT = [5.5, 0]
+print("2 Jointed Arm IK Solution #2:")
+POINT = Vector(0, 6.5)
+L = [1, 7]
+A = two_jointed_arm_ik(L[0], L[1], POINT)
+if POINT.equals(recreate_point(L, A)):
+    print("Success")
+else:
+    print("Failure")
+    print(str(recreate_point(L, A)))
+    sys.exit()
+
+print("2 Jointed Arm IK Solution #3:")
+POINT = Vector(-6.5, 0)
+L = [1, 7]
+A = two_jointed_arm_ik(L[0], L[1], POINT)
+if POINT.equals(recreate_point(L, A)):
+    print("Success")
+else:
+    print("Failure")
+    print(str(recreate_point(L, A)))
+    sys.exit()
+    
+print("2 Jointed Arm IK Solution #4:")
+POINT = Vector(0, -3)
+L = [2, 2]
+A = two_jointed_arm_ik(L[0], L[1], POINT)
+if POINT.equals(recreate_point(L, A)):
+    print("Success")
+else:
+    print("Failure")
+    print(str(recreate_point(L, A)))
+    sys.exit()
+
+print("N Jointed Arm Solution #1:")
+POINT = Vector(5.5, 0.0)
 L = [1, 3, 4]
-A = n_jointed_arm_ik(L, 0.8, POINT)
-for a in A:
-    print(a * 180 / 3.14159)
-print("recreated point: " + str(recreate_point(L, A)))
+A = n_jointed_arm_ik(L, 0.5, POINT)
+if POINT.equals(recreate_point(L, A)):
+    print("Success")
+else:
+    print("Failure")
+    sys.exit()
+
+print("N Jointed Arm Solution #2:")
+POINT = Vector(6.0, 0)
+L = [1, 1, 1, 1, 1, 4, 3, 1, 1]
+A = n_jointed_arm_ik(L, 0.5, POINT)
+if POINT.equals(recreate_point(L, A)):
+    print("Success")
+else:
+    print("Failure")
+    print(str(recreate_point(L, A)))
+    sys.exit()
+
+print("N Jointed Arm Solution #3:")
+POINT = Vector(6.0, 0)
+L = [1, 1, 1, 1, 1, 4, 3, 1, 1, 1, 1, 1]
+A = n_jointed_arm_ik(L, 0.5, POINT)
+if POINT.equals(recreate_point(L, A)):
+    print("Success")
+else:
+    print("Failure")
+    print(str(recreate_point(L, A)))
+    sys.exit()
+
+
+print("N Jointed Arm Solution #4:")
+POINT = Vector(6.0, 0)
+L = [1, 1, 1, 1, 1, 1, 0.1, 0.01, 0.1, 2, 3, 4]
+A = n_jointed_arm_ik(L, 0.0, POINT)
+if POINT.equals(recreate_point(L, A)):
+    print("Success")
+else:
+    print("Failure")
+    print(str(recreate_point(L, A)))
+    sys.exit()
+
