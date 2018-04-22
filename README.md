@@ -12,8 +12,11 @@ Python code that demonstrates some math behind N-Jointed Arm Inverse Kinematics
 
 ## Setup
 Run the following in a debian-based terminal:
+
 `git clone https://github.com/PyCee/N-Jointed-Arm-Inverse-Kinematics.git`
+
 `cd N-Jointed-Arm-Inverse-Kinematics/`
+
 `make install`
 
 ## Once Installed:
