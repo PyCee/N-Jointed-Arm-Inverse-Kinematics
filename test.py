@@ -2,7 +2,6 @@ from N_jointed_arm_ik import n_joint_point_validity, n_jointed_arm_ik, two_joint
 import math
 import sys
 
-
 print("2 Joint Validity Test:")
 POINT = Vector(5.0, 0)
 L = [10, 1]
@@ -97,7 +96,6 @@ else:
     print(str(recreate_point(L, A)))
     sys.exit()
 
-
 print("N Jointed Arm Solution #4:")
 POINT = Vector(6.0, 0)
 L = [1, 1, 1, 1, 1, 1, 0.1, 0.01, 0.1, 2, 3, 4]
@@ -109,3 +107,24 @@ else:
     print(str(recreate_point(L, A)))
     sys.exit()
 
+print("N Jointed Arm Solution #5:")
+POINT = Vector(4.0, 0)
+L = [1, 2, 3, 4, 2, 2]
+A = n_jointed_arm_ik(L, 1.0, POINT)
+if POINT.equals(recreate_point(L, A)):
+    print("Success")
+else:
+    print("Failure")
+    print(str(recreate_point(L, A)))
+    sys.exit()
+
+print("N Jointed Arm Solution #6:")
+POINT = Vector(0.1, 0)
+L = [1, 1, 1]
+A = n_jointed_arm_ik(L, 1.0, POINT)
+if POINT.equals(recreate_point(L, A)):
+    print("Success")
+else:
+    print("Failure")
+    print(str(recreate_point(L, A)))
+    sys.exit()

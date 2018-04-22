@@ -1,6 +1,8 @@
 import math
 import sys
 
+#TODO: handle distance of 0
+
 class Vector:
     def __init__(self, x, y):
         self.x = x
@@ -27,6 +29,9 @@ def two_joint_point_validity(length_1, length_2, point):
 
     The valid range is length_2 away from length_1
     '''
+
+    # To help correct error
+    length_2 *= 1.000000001
     r_1 = length_1 + length_2
     r_2 = length_1 - length_2
     distance = point.magnitude()
@@ -42,7 +47,7 @@ def n_joint_point_validity(L, point):
     '''
     lengths = L[:]
     lengths.sort(reverse=True)
-    for i in range(1, len(lengths)-1):
+    for i in range(1, len(lengths)):
         large = sum(lengths[:i])
         small = sum(lengths[i:])
         if two_joint_point_validity(large, small, point):
@@ -73,14 +78,8 @@ def two_jointed_arm_ik(length_1, length_2, point):
     of the circles. It finds the intersection point, and calculates
     the angles for each joint.
     '''
-    x_neg = point.x < 0.0
     distance = point.magnitude()
-    relative_angle = math.asin(point.y / distance)
-    if point.x < 0.0:
-        relative_angle = 3.14159 - relative_angle
 
-    length_1 *= 1.00000000001
-    length_2 *= 1.00000000001
     if not two_joint_point_validity(max(length_1, length_2),
                                     min(length_1, length_2), point):
         print("ERROR::Two joint IK not valid::\n" + \
@@ -88,14 +87,29 @@ def two_jointed_arm_ik(length_1, length_2, point):
               "\tdistance: " + str(distance))
         sys.exit()
         
-    # Calculate the x value of the intersection points
-    #x1 = (length_1 ** 2 - length_2 ** 2 + distance ** 2) / (distance * 2)
-    x1 = (distance**2 - length_2**2 + length_1**2) / (2 * distance)
-    x2 = distance - x1
+    x_neg = point.x < 0.0
+    relative_angle = 0.0
+    x_1 = 0.0
+    
+    if not distance == 0:
+        relative_angle = math.asin(point.y / distance)
+        # Calculate the x value of the intersection points
+        x_1 = (distance**2 - length_2**2 + length_1**2) / (2 * distance)
+        
+    x_2 = distance - x_1
+        
+        
+    if point.x < 0.0:
+        relative_angle = 3.14159 - relative_angle
     # We use the lengths with the x values to calculate the
     #   x value on the unit circle, and use acos to get the angle
-    base_1 = x1 / length_1
-    base_2 = x2 / length_2
+    base_1 = x_1 / length_1
+    base_2 = x_2 / length_2
+
+    base_1 = max(-1.0, base_1)
+    base_2 = max(-1.0, base_2)
+    base_1 = min(1.0, base_1)
+    base_2 = min(1.0, base_2)
     
     angle_1 = math.acos(base_1)
     angle_2 = -1.0 * math.acos(base_2)
@@ -113,20 +127,28 @@ def n_jointed_arm_ik(lengths, weight, point):
     for index in range(len(lengths)-1):
         # Calculate multiplier based on weight
         mult = 1.0
-        if index < len(lengths)-2:
-            minimum_mult = point.magnitude() / sum(lengths[index:])
-            minimum_mult = min(minimum_mult, 1.0)
-            
-            maximum_mult = (point.magnitude()+lengths[index]) / sum(lengths[index+1:])
-            maximum_mult = min(maximum_mult, 1.0)
-            
-            mult = minimum_mult + weight * (maximum_mult - minimum_mult)
-            mult = min(mult, 1.0)
-
-        # Run a two jointed arm ik to find the angle for this joint
-        a_1, a_2 = two_jointed_arm_ik(lengths[index] * mult,
-                                      sum(lengths[index+1:]) * mult,
-                                      point)
+        length_1 = lengths[index]
+        length_2 = sum(lengths[index+1:])
+        a_1 = 0.0
+        a_2 = 0.0
+        if not point.magnitude() == 0.0:
+            if index < len(lengths)-2:
+                minimum_mult = point.magnitude() / (length_1 + length_2)
+                minimum_mult = min(minimum_mult, 1.0)
+                
+                maximum_mult = 1.0
+                difference = length_2 - length_1
+                if difference > point.magnitude():
+                    maximum_mult = point.magnitude() / (length_2 - length_1)
+                    maximum_mult = min(maximum_mult, 1.0)
+                    
+                    mult = minimum_mult + weight * (maximum_mult - minimum_mult)
+                    mult = min(mult, 1.0)
+                    
+            # Run a two jointed arm ik to find the angle for this joint
+            a_1, a_2 = two_jointed_arm_ik(length_1 * mult,
+                                          length_2 * mult,
+                                          point)
 
         # Store relative angle values
         resulting_angles[index] += a_1
