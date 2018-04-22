@@ -13,16 +13,14 @@ cd N-Jointed-Arm-Inverse-Kinematics/
 make install
 
 Once Installed:
-make test
-     Runs various math tests to ensure math correctness
+make test - Runs various math tests to ensure math correctness
 
-make run
-     Starts the GUI program to mess around with N-jointed arms
+make run - Starts the GUI program to mess around with N-jointed arms
 
-     In the GUI:
-     	N - The number of joints
-	length_(i) - the length of the i'th section
-	Point X - The X coordinate of the endpoint
-	Point Y - The Y coordinate of the endpoint
-	Blue Dot - The beginning of the arm. Should be in the center of the screen
-	Red Dot - The point at coordinates (Point X, Point Y). The arm should lead to this point
+In the GUI:
+N - The number of joints
+length_(i) - the length of the i'th section
+Point X - The X coordinate of the endpoint
+Point Y - The Y coordinate of the endpoint
+Blue Dot - The beginning of the arm. Should be in the center of the screen
+Red Dot - The point at coordinates (Point X, Point Y). The arm should lead to this point
