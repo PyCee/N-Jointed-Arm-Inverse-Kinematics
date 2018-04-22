@@ -1,5 +1,5 @@
 import math
-from N_jointed_arm_ik import Vector, two_jointed_arm_ik, n_jointed_arm_ik, recreate_point, n_joint_point_validity
+from n_jointed_arm_ik import Vector, two_jointed_arm_ik, n_jointed_arm_ik, recreate_point, n_joint_point_validity
 import tkinter
 top = tkinter.Tk()
 
@@ -45,10 +45,10 @@ def set_canvas():
     global canvas
     canvas = tkinter.Canvas(top, width=canvas_size, height=canvas_size, bg="white")
     canvas.place(x=325, y=10)
-    print("possible: " + str(n_joint_point_validity(L, POINT)))
+    reach = n_joint_point_validity(L, POINT)
+    
     A = n_jointed_arm_ik(L, 0.5, POINT)
     print(A)
-    print("recreated: " + str(recreate_point(L, A)))
     position = Vector(0.0, 0.0)
     
     for i in range(len(L)):

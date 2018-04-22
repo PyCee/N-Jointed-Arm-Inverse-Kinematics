@@ -1,4 +1,4 @@
-from N_jointed_arm_ik import n_joint_point_validity, n_jointed_arm_ik, two_jointed_arm_ik, recreate_point, Vector
+from n_jointed_arm_ik import *
 import math
 import sys
 

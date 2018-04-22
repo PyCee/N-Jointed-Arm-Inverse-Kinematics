@@ -1,8 +1,6 @@
 import math
 import sys
 
-#TODO: handle distance of 0
-
 class Vector:
     def __init__(self, x, y):
         self.x = x
