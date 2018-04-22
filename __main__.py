@@ -58,17 +58,14 @@ def set_canvas():
                                        L[i] * math.sin(absolute_angle)))
         print(position)
     r = 0.1
-    canvas.create_oval(-r, -r,
-                       r, r, 
-                       fill="#f11", width=0.0)
-    canvas.create_oval(POINT.x-r, POINT.y-r,
-                       POINT.x+r, POINT.y+r,
+    canvas.create_oval(-r, -r, r, r, 
+                       fill="#11f", width=0.0)
+    canvas.create_oval(POINT.x-r, POINT.y-r, POINT.x+r, POINT.y+r,
                        fill="#f11", width=0.0)
     
     offset = -canvas_size / (canvas_scale * 2)
     canvas.scale("all", offset, -offset,
                  canvas_scale, -canvas_scale)
-
 
 point_input_boxes = []
 
