@@ -142,7 +142,8 @@ def n_jointed_arm_ik(lengths, weight, point):
                     
                     mult = minimum_mult + weight * (maximum_mult - minimum_mult)
                     mult = min(mult, 1.0)
-                    
+                    #print("did mult calculations")
+            #print("mult: " + str(mult))
             # Run a two jointed arm ik to find the angle for this joint
             a_1, a_2 = two_jointed_arm_ik(length_1 * mult,
                                           length_2 * mult,

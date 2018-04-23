@@ -30,3 +30,9 @@ Run the following in a debian-based terminal:
 * Point Y - The Y coordinate of the endpoint
 * Blue Dot - The beginning of the arm. Should be in the center of the screen
 * Red Dot - The point at coordinates (Point X, Point Y). The arm should lead to this point
+
+## Running
+* Set N
+* Set arm lengths
+* Click button to set arm Variables
+* Type in point coords and update arm variables, or click in white box to drag endpoint
