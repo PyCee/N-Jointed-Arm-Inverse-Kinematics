@@ -59,7 +59,7 @@ def update_canvas():
     
     reach = n_joint_point_validity(L, POINT)
     if not reach:
-        print("Can't reach")
+        #print("Can't reach")
         return
     A = n_jointed_arm_ik(L, 0.5, POINT)
     position = Vector(0.0, 0.0)
@@ -126,6 +126,10 @@ def set_input_variables(lengths, point_x, point_y):
             if char not in "1234567890.-+":
                 print("Invalid characters in field \'length_" + str(i) + "\'")
                 return
+        length = float(value)
+        if length == 0.0:
+            print("Invalid length value \'0.0\' in field \'length_" + str(i) + "\'")
+            return
         L.append(float(value))
 
     # Set point variable 'POINT'
