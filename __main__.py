@@ -23,13 +23,17 @@ MAX_N = 10
 N = 0
 POINT = None
 L = []
+W = 0.5
 
 length_input_boxes = []
+angle_display_boxes = []
 for i in range(MAX_N):
     length_input_boxes.append(Input_Box("length_" + str(i) + ":",
-                                        Vector(10,
-                                               i * 20 + 50)))
+                                        Vector(10, i * 20 + 50)))
     length_input_boxes[i].box.config(state="disabled")
+    angle_display_boxes.append(Input_Box("angle_" + str(i) + ":",
+                                         Vector(170, i * 20 + 50)))
+    angle_display_boxes[i].box.config(state="disabled")
 
 canvas = None
 canvas_size = 400
@@ -59,11 +63,14 @@ def update_canvas():
     
     reach = n_joint_point_validity(L, POINT)
     if not reach:
-        #print("Can't reach")
         return
-    A = n_jointed_arm_ik(L, 0.5, POINT)
+    A = n_jointed_arm_ik(L, W, POINT)
     position = Vector(0.0, 0.0)
     for i in range(len(L)):
+        angle_display_boxes[i].box.config(state="normal")
+        angle_display_boxes[i].box.delete(0, tkinter.END)
+        angle_display_boxes[i].box.insert(0, str(round(A[i] * 180 / 3.14159, 3)))
+        angle_display_boxes[i].box.config(state="disabled")
         absolute_angle = sum(A[:i+1])
         draw_rectangle(position, L[i], absolute_angle)
         position = position.add(Vector(L[i] * math.cos(absolute_angle),
@@ -90,6 +97,12 @@ def set_point(x, y):
     global POINT
     POINT = Vector(x, y)
     update_canvas()
+    
+    point_data_boxes[0].box.delete(0, tkinter.END)
+    point_data_boxes[0].box.insert(0, str(round(x, 3)))
+    point_data_boxes[1].box.delete(0, tkinter.END)
+    point_data_boxes[1].box.insert(0, str(round(y, 3)))
+    
     # Set focus to the canvas so we can pick up mouse-move events
     canvas.focus()
     
@@ -104,10 +117,6 @@ def set_point_from_mouse_event(event):
     y = y + 0.5 * (canvas_size / canvas_scale)
     
     # Update data boxes to display current end-point
-    point_data_boxes[0].box.delete(0, tkinter.END)
-    point_data_boxes[0].box.insert(0, str(round(x, 3)))
-    point_data_boxes[1].box.delete(0, tkinter.END)
-    point_data_boxes[1].box.insert(0, str(round(y, 3)))
     
     set_point(x, y)
 
@@ -197,8 +206,9 @@ def set_input_variables_w_boxes():
 set_vars_button = tkinter.Button(top, text="Set Arm Variables", command=set_input_variables_w_boxes)
 set_vars_button.place(x=10, y=350)
 
-# Update point position on mouse click and mouse click+motion
+# Update point position on mouse click
 canvas.bind("<Button-1>", set_point_from_mouse_event)
+# Update point position on mouse motion when clicked
 canvas.bind("<B1-Motion>", set_point_from_mouse_event)
 point_data_boxes[0].box.bind("<Return>", lambda event: point_data_boxes[1].box.focus())
 point_data_boxes[1].box.bind("<Return>", lambda event: set_input_variables_w_boxes())

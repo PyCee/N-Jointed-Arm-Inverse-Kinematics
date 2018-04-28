@@ -149,7 +149,6 @@ def n_jointed_arm_ik(lengths, weight, point):
             a_1, a_2 = two_jointed_arm_ik(length_1 * mult,
                                           length_2 * mult,
                                           point)
-
         # Store relative angle values
         resulting_angles[index] += a_1
         if index >= 1:
@@ -164,5 +163,5 @@ def n_jointed_arm_ik(lengths, weight, point):
                         lengths[index] * math.sin(absolute_angle))
         point = point.subtract(offset)
         point = point.scale(0.999999999)
-    
+
     return resulting_angles
