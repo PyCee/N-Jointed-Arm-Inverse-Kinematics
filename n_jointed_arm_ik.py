@@ -83,7 +83,7 @@ def two_jointed_arm_ik(length_1, length_2, point):
         print("ERROR::Two joint IK not valid::\n" + \
               "\tlength_1, length_2: " + str(length_1) + ", " + str(length_2) + "\n" \
               "\tdistance: " + str(distance))
-        sys.exit()
+        return 0.0, 0.0
         
     x_neg = point.x < 0.0
     relative_angle = 0.0
@@ -135,15 +135,16 @@ def n_jointed_arm_ik(lengths, weight, point):
                 minimum_mult = min(minimum_mult, 1.0)
                 
                 maximum_mult = 1.0
-                difference = length_2 - length_1
-                if difference > point.magnitude():
-                    maximum_mult = point.magnitude() / (length_2 - length_1)
+                difference = math.fabs(length_2 - length_1)
+                if not difference == 0.0:
+                    # If we can go ahead with this difference
+                    maximum_mult = point.magnitude() / (difference)
                     maximum_mult = min(maximum_mult, 1.0)
                     
                     mult = minimum_mult + weight * (maximum_mult - minimum_mult)
                     mult = min(mult, 1.0)
-                    #print("did mult calculations")
-            #print("mult: " + str(mult))
+                    mult = max(mult, 0.0)
+                
             # Run a two jointed arm ik to find the angle for this joint
             a_1, a_2 = two_jointed_arm_ik(length_1 * mult,
                                           length_2 * mult,

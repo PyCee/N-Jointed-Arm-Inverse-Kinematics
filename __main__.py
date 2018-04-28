@@ -184,13 +184,6 @@ set_n_button = tkinter.Button(top, text="Set N", command=lambda : set_n(n_input.
 set_n_button.place(x=120, y=7)
 n_input.box.focus()
 
-
-# Update point position on mouse click and mouse click+motion
-canvas.bind("<Button-1>", set_point_from_mouse_event)
-canvas.bind("<B1-Motion>", set_point_from_mouse_event)
-point_data_boxes[0].box.bind("<Return>", lambda event: point_data_boxes[1].box.focus())
-
-
 def set_input_variables_w_boxes():
     lengths = []
     if N == 0:
@@ -204,6 +197,11 @@ def set_input_variables_w_boxes():
 set_vars_button = tkinter.Button(top, text="Set Arm Variables", command=set_input_variables_w_boxes)
 set_vars_button.place(x=10, y=350)
 
+# Update point position on mouse click and mouse click+motion
+canvas.bind("<Button-1>", set_point_from_mouse_event)
+canvas.bind("<B1-Motion>", set_point_from_mouse_event)
+point_data_boxes[0].box.bind("<Return>", lambda event: point_data_boxes[1].box.focus())
+point_data_boxes[1].box.bind("<Return>", lambda event: set_input_variables_w_boxes())
 
 top.geometry("750x500+400+10")
 top.mainloop()
