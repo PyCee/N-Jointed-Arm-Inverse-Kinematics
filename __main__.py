@@ -3,7 +3,6 @@ from n_jointed_arm_ik import Vector, two_jointed_arm_ik, n_jointed_arm_ik, recre
 import tkinter
 top = tkinter.Tk()
 
-# TODO:make base Input_Group class the below classes inherit from
 class Input_Thing:
     def __init__(self, title, position, widget):
         self.title = title
@@ -17,23 +16,15 @@ class Input_Thing:
         self.widget.place(x=position.x + 7*len(self.title), y=position.y)
     def get(self):
         return self.widget.get()
-        
-class Input_Box:
+class Input_Box (Input_Thing):
     def __init__(self, title, position):
-        self.position = position
-        self.title = title
-        self.label = tkinter.Label(top, text=title)
-        self.label.place(x=position.x, y=position.y)
-        self.box = tkinter.Entry(top, width=10, justify="center")
-        self.set_position(position)
-    def set_position(self, position):
-        self.label.place(x=position.x, y=position.y)
-        self.box.place(x=position.x + 7*len(self.title), y=position.y)
-    def get(self):
-        return self.box.get()
-class Input_Scale:
-    def __init__(self, title, position):
-        pass
+        super().__init__(title, position, tkinter.Entry(top, width=10, justify="center"))
+class Input_Scale (Input_Thing):
+    def __init__(self, title, position, command_):
+        super().__init__(title, position, tkinter.Scale(top, from_=0, to=1,
+                                                        resolution=0.001,
+                                                        orient=tkinter.HORIZONTAL,
+                                                        command=command_))
         
 
 NUMBER_CHARACTERS = "1234567890-+."
@@ -49,10 +40,10 @@ angle_display_boxes = []
 for i in range(MAX_N):
     length_input_boxes.append(Input_Box("length_" + str(i) + ":",
                                         Vector(10, i * 20 + 50)))
-    length_input_boxes[i].box.config(state="disabled")
+    length_input_boxes[i].widget.config(state="disabled")
     angle_display_boxes.append(Input_Box("angle_" + str(i) + ":",
                                          Vector(170, i * 20 + 50)))
-    angle_display_boxes[i].box.config(state="disabled")
+    angle_display_boxes[i].widget.config(state="disabled")
 
 canvas = None
 canvas_size = 400
@@ -90,10 +81,10 @@ def update_canvas():
     A = n_jointed_arm_ik(L, W, POINT)
     position = Vector(0.0, 0.0)
     for i in range(len(L)):
-        angle_display_boxes[i].box.config(state="normal")
-        angle_display_boxes[i].box.delete(0, tkinter.END)
-        angle_display_boxes[i].box.insert(0, str(round(A[i] * 180 / 3.14159, 3)))
-        angle_display_boxes[i].box.config(state="disabled")
+        angle_display_boxes[i].widget.config(state="normal")
+        angle_display_boxes[i].widget.delete(0, tkinter.END)
+        angle_display_boxes[i].widget.insert(0, str(round(A[i] * 180 / 3.14159, 3)))
+        angle_display_boxes[i].widget.config(state="disabled")
         absolute_angle = sum(A[:i+1])
         draw_rectangle(position, L[i], absolute_angle)
         position = position.add(Vector(L[i] * math.cos(absolute_angle),
@@ -113,18 +104,18 @@ def update_canvas():
 
 point_data_boxes = [Input_Box("Point X: ", Vector(10, 270)),
                   Input_Box("Point Y: ", Vector(10, 290))]
-point_data_boxes[0].box.insert(0, "0")
-point_data_boxes[1].box.insert(0, "0")
+point_data_boxes[0].widget.insert(0, "0")
+point_data_boxes[1].widget.insert(0, "0")
 
 def set_point(x, y):
     global POINT
     POINT = Vector(x, y)
     update_canvas()
     
-    point_data_boxes[0].box.delete(0, tkinter.END)
-    point_data_boxes[0].box.insert(0, str(round(x, 3)))
-    point_data_boxes[1].box.delete(0, tkinter.END)
-    point_data_boxes[1].box.insert(0, str(round(y, 3)))
+    point_data_boxes[0].widget.delete(0, tkinter.END)
+    point_data_boxes[0].widget.insert(0, str(round(x, 3)))
+    point_data_boxes[1].widget.delete(0, tkinter.END)
+    point_data_boxes[1].widget.insert(0, str(round(y, 3)))
     
     # Set focus to the canvas so we can pick up mouse-move events
     canvas.focus()
@@ -203,23 +194,23 @@ def set_n(N_str):
         return
     # Set length input boxes states to NORMAL
     for i in range(N):
-        length_input_boxes[i].box.config(state="normal")
+        length_input_boxes[i].widget.config(state="normal")
         if i < N-1:
-            length_input_boxes[i].box.bind("<Return>", lambda event, i=i:length_input_boxes[i+1].box.focus())
+            length_input_boxes[i].widget.bind("<Return>", lambda event, i=i:length_input_boxes[i+1].widget.focus())
         else:
-            length_input_boxes[i].box.bind("<Return>", lambda event:point_data_boxes[0].box.focus())
+            length_input_boxes[i].widget.bind("<Return>", lambda event:point_data_boxes[0].widget.focus())
     for i in range(N, len(length_input_boxes)):
-        length_input_boxes[i].box.delete(0, tkinter.END)
-        length_input_boxes[i].box.config(state="disabled")
+        length_input_boxes[i].widget.delete(0, tkinter.END)
+        length_input_boxes[i].widget.config(state="disabled")
         
-    length_input_boxes[0].box.focus()
+    length_input_boxes[0].widget.focus()
 
 # Input box for number of joints
 n_input = Input_Box("N: ", Vector(10, 10))
-n_input.box.bind("<Return>", lambda event : set_n(n_input.get()))
+n_input.widget.bind("<Return>", lambda event : set_n(n_input.get()))
 set_n_button = tkinter.Button(top, text="Set N", command=lambda : set_n(n_input.get()))
 set_n_button.place(x=120, y=7)
-n_input.box.focus()
+n_input.widget.focus()
 
 def set_input_variables_w_boxes():
     '''
@@ -230,9 +221,9 @@ def set_input_variables_w_boxes():
         print("Please enter an N and lengths")
         return
     for i in range(N):
-        lengths.append(length_input_boxes[i].box.get())
-    point_x = point_data_boxes[0].box.get()
-    point_y = point_data_boxes[1].box.get()
+        lengths.append(length_input_boxes[i].widget.get())
+    point_x = point_data_boxes[0].widget.get()
+    point_y = point_data_boxes[1].widget.get()
     set_input_variables(lengths, point_x, point_y)
     
 set_vars_button = tkinter.Button(top, text="Set Arm Variables", command=set_input_variables_w_boxes)
@@ -245,19 +236,21 @@ def update_weight_scale(event):
     global W
     W = weight_scale.widget.get()
     update_canvas()
-
+'''
 weight_scale = Input_Thing("Weight", Vector(10, 400),
                            tkinter.Scale(top, from_=0, to=1, resolution=0.001,
                                          orient=tkinter.HORIZONTAL,
                                          command=update_weight_scale))
+'''
+weight_scale = Input_Scale("Weight", Vector(10, 400), update_weight_scale)
 weight_scale.widget.set(0.5)
 
 # Update point position on mouse click
 canvas.bind("<Button-1>", set_point_from_mouse_event)
 # Update point position on mouse motion when clicked
 canvas.bind("<B1-Motion>", set_point_from_mouse_event)
-point_data_boxes[0].box.bind("<Return>", lambda event: point_data_boxes[1].box.focus())
-point_data_boxes[1].box.bind("<Return>", lambda event: set_input_variables_w_boxes())
+point_data_boxes[0].widget.bind("<Return>", lambda event: point_data_boxes[1].widget.focus())
+point_data_boxes[1].widget.bind("<Return>", lambda event: set_input_variables_w_boxes())
 
 top.geometry("750x500+400+10")
 top.mainloop()
