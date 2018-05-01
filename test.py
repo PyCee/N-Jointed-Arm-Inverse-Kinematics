@@ -1,130 +1,67 @@
+
 from n_jointed_arm_ik import *
 import math
 import sys
 
-print("2 Joint Validity Test:")
-POINT = Vector(5.0, 0)
-L = [10, 1]
-if n_joint_point_validity(L, POINT) == False:
-    print("Success")
-else:
-    print("Failure")
-    sys.exit()
+class Test:
+    def __init__(self, T, L, P):
+        self.title = T
+        self.lengths = L
+        self.point = P
+    def test(self, funct, result_funct):
+        if result_funct(self.lengths, self.point, funct(self.lengths, self.point)):
+            print(self.title + ": Success")
+        else:
+            print(self.title + ": Failure")
+            sys.exit()
 
-print("N Joint Validity Test:")
-POINT = Vector(0.5, 0)
-L = [2, 6, 5]
-if n_joint_point_validity(L, POINT):
-    print("Success")
-else:
-    print("Failure")
-    sys.exit()
+two_joint_validity_test_1 = Test("Two Joint Validity Test #1", [10, 1], Vector(5.0, 0.0))
+two_joint_validity_test_1.test(lambda L, P: two_joint_point_validity(L[0], L[1], P),
+                               lambda L, P, result: result == False)
 
-print("2 Jointed Arm IK Solution #1:")
-POINT = Vector(7, 0)
-L = [3, 4]
-A = two_jointed_arm_ik(L[0], L[1], POINT)
-if POINT.equals(recreate_point(L, A)):
-    print("Success")
-else:
-    print("Failure")
-    print(str(recreate_point(L, A)))
-    sys.exit()
+n_joint_validity_test_1 = Test("N Joint Validity Test #1", [2, 6, 5], Vector(0.5, 0.0))
+n_joint_validity_test_1.test(lambda L, P: n_joint_point_validity(L, P),
+                             lambda L, P, result: result == True)
 
-print("2 Jointed Arm IK Solution #2:")
-POINT = Vector(0, 6.5)
-L = [1, 7]
-A = two_jointed_arm_ik(L[0], L[1], POINT)
-if POINT.equals(recreate_point(L, A)):
-    print("Success")
-else:
-    print("Failure")
-    print(str(recreate_point(L, A)))
-    sys.exit()
+two_joint_ik_test_1 = Test("Two Joint IK Test #1", [3, 4], Vector(7.0, 0.0))
+two_joint_ik_test_1.test(lambda L, P: two_jointed_arm_ik(L[0], L[1], P),
+                         lambda L, P, result: recreate_point(L, result).equals(P))
 
-print("2 Jointed Arm IK Solution #3:")
-POINT = Vector(-6.5, 0)
-L = [1, 7]
-A = two_jointed_arm_ik(L[0], L[1], POINT)
-if POINT.equals(recreate_point(L, A)):
-    print("Success")
-else:
-    print("Failure")
-    print(str(recreate_point(L, A)))
-    sys.exit()
-    
-print("2 Jointed Arm IK Solution #4:")
-POINT = Vector(0, -3)
-L = [2, 2]
-A = two_jointed_arm_ik(L[0], L[1], POINT)
-if POINT.equals(recreate_point(L, A)):
-    print("Success")
-else:
-    print("Failure")
-    print(str(recreate_point(L, A)))
-    sys.exit()
+two_joint_ik_test_2 = Test("Two Joint IK Test #2", [1, 7], Vector(0, 6.5))
+two_joint_ik_test_2.test(lambda L, P: two_jointed_arm_ik(L[0], L[1], P),
+                         lambda L, P, result: recreate_point(L, result).equals(P))
 
-print("N Jointed Arm Solution #1:")
-POINT = Vector(5.5, 0.0)
-L = [1, 3, 4]
-A = n_jointed_arm_ik(L, 0.5, POINT)
-if POINT.equals(recreate_point(L, A)):
-    print("Success")
-else:
-    print("Failure")
-    sys.exit()
+two_joint_ik_test_3 = Test("Two Joint IK Test #3", [1, 7], Vector(-6.5, 0.0))
+two_joint_ik_test_3.test(lambda L, P: two_jointed_arm_ik(L[0], L[1], P),
+                         lambda L, P, result: recreate_point(L, result).equals(P))
 
-print("N Jointed Arm Solution #2:")
-POINT = Vector(6.0, 0)
-L = [1, 1, 1, 1, 1, 4, 3, 1, 1]
-A = n_jointed_arm_ik(L, 0.5, POINT)
-if POINT.equals(recreate_point(L, A)):
-    print("Success")
-else:
-    print("Failure")
-    print(str(recreate_point(L, A)))
-    sys.exit()
+two_joint_ik_test_4 = Test("Two Joint IK Test #4", [2, 2], Vector(0, -3))
+two_joint_ik_test_4.test(lambda L, P: two_jointed_arm_ik(L[0], L[1], P),
+                         lambda L, P, result: recreate_point(L, result).equals(P))
 
-print("N Jointed Arm Solution #3:")
-POINT = Vector(6.0, 0)
-L = [1, 1, 1, 1, 1, 4, 3, 1, 1, 1, 1, 1]
-A = n_jointed_arm_ik(L, 0.5, POINT)
-if POINT.equals(recreate_point(L, A)):
-    print("Success")
-else:
-    print("Failure")
-    print(str(recreate_point(L, A)))
-    sys.exit()
+n_joint_ik_test_1 = Test("N Joint IK Test #1", [1, 3, 4], Vector(5.5, 0.0))
+n_joint_ik_test_1.test(lambda L, P: n_jointed_arm_ik(L, 0.5, P),
+                       lambda L, P, result: recreate_point(L, result).equals(P))
 
-print("N Jointed Arm Solution #4:")
-POINT = Vector(6.0, 0)
-L = [1, 1, 1, 1, 1, 1, 0.1, 0.01, 0.1, 2, 3, 4]
-A = n_jointed_arm_ik(L, 0.0, POINT)
-if POINT.equals(recreate_point(L, A)):
-    print("Success")
-else:
-    print("Failure")
-    print(str(recreate_point(L, A)))
-    sys.exit()
+n_joint_ik_test_2 = Test("N Joint IK Test #2", [1, 1, 1, 1, 1, 4, 3, 1, 1],
+                         Vector(6.0, 0.0))
+n_joint_ik_test_2.test(lambda L, P: n_jointed_arm_ik(L, 0.5, P),
+                       lambda L, P, result: recreate_point(L, result).equals(P))
 
-print("N Jointed Arm Solution #5:")
-POINT = Vector(4.0, 0)
-L = [1, 2, 3, 4, 2, 2]
-A = n_jointed_arm_ik(L, 1.0, POINT)
-if POINT.equals(recreate_point(L, A)):
-    print("Success")
-else:
-    print("Failure")
-    print(str(recreate_point(L, A)))
-    sys.exit()
+n_joint_ik_test_3 = Test("N Joint IK Test #3", [1, 1, 1, 1, 1, 4, 3, 1, 1, 1, 1, 1],
+                         Vector(6.0, 0.0))
+n_joint_ik_test_3.test(lambda L, P: n_jointed_arm_ik(L, 0.5, P),
+                       lambda L, P, result: recreate_point(L, result).equals(P))
 
-print("N Jointed Arm Solution #6:")
-POINT = Vector(0.1, 0)
-L = [1, 1, 1]
-A = n_jointed_arm_ik(L, 1.0, POINT)
-if POINT.equals(recreate_point(L, A)):
-    print("Success")
-else:
-    print("Failure")
-    print(str(recreate_point(L, A)))
-    sys.exit()
+n_joint_ik_test_4 = Test("N Joint IK Test #4",
+                         [1, 1, 1, 1, 1, 1, 0.1, 0.01, 0.1, 2, 3, 4], Vector(6.0, 0.0))
+n_joint_ik_test_4.test(lambda L, P: n_jointed_arm_ik(L, 0.5, P),
+                       lambda L, P, result: recreate_point(L, result).equals(P))
+
+n_joint_ik_test_5 = Test("N Joint IK Test #5", [1, 2, 3, 4, 2, 2], Vector(4.0, 0.0))
+n_joint_ik_test_5.test(lambda L, P: n_jointed_arm_ik(L, 1.0, P),
+                       lambda L, P, result: recreate_point(L, result).equals(P))
+
+n_joint_ik_test_6 = Test("N Joint IK Test #6", [1, 1, 1], Vector(0.1, 0.0))
+n_joint_ik_test_6.test(lambda L, P: n_jointed_arm_ik(L, 1.0, P),
+                       lambda L, P, result: recreate_point(L, result).equals(P))
