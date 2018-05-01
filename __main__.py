@@ -3,6 +3,21 @@ from n_jointed_arm_ik import Vector, two_jointed_arm_ik, n_jointed_arm_ik, recre
 import tkinter
 top = tkinter.Tk()
 
+# TODO:make base Input_Group class the below classes inherit from
+class Input_Thing:
+    def __init__(self, title, position, widget):
+        self.title = title
+        self.position = position
+        self.label = tkinter.Label(top, text=title)
+        self.label.place(x=position.x, y=position.y)
+        self.widget = widget#tkinter.Entry(top, width=10, justify="center")
+        self.set_position(position)
+    def set_position(self, position):
+        self.label.place(x=position.x, y=position.y)
+        self.widget.place(x=position.x + 7*len(self.title), y=position.y)
+    def get(self):
+        return self.widget.get()
+        
 class Input_Box:
     def __init__(self, title, position):
         self.position = position
@@ -16,6 +31,10 @@ class Input_Box:
         self.box.place(x=position.x + 7*len(self.title), y=position.y)
     def get(self):
         return self.box.get()
+class Input_Scale:
+    def __init__(self, title, position):
+        pass
+        
 
 NUMBER_CHARACTERS = "1234567890-+."
 
@@ -57,6 +76,10 @@ def draw_rectangle(position, length, radians):
     canvas.create_polygon(points, fill="black")
 
 def update_canvas():
+    '''
+    Calculates angles for current lengths/point, calls draw_rectangle
+    for each length, and draws circles for appropriate origin and endpoint info
+    '''
     global canvas
     global L
     global POINT
@@ -159,6 +182,10 @@ def set_input_variables(lengths, point_x, point_y):
     set_point(float(point_x), float(point_y))
 
 def set_n(N_str):
+    '''
+    Sets global variable N to number in string parameter N_str, and
+    sets up length_input_boxes for appropriate use
+    '''
     if len(N_str) == 0:
         print("Invalid empty field \'N\'")
         return
@@ -187,6 +214,7 @@ def set_n(N_str):
         
     length_input_boxes[0].box.focus()
 
+# Input box for number of joints
 n_input = Input_Box("N: ", Vector(10, 10))
 n_input.box.bind("<Return>", lambda event : set_n(n_input.get()))
 set_n_button = tkinter.Button(top, text="Set N", command=lambda : set_n(n_input.get()))
@@ -194,6 +222,9 @@ set_n_button.place(x=120, y=7)
 n_input.box.focus()
 
 def set_input_variables_w_boxes():
+    '''
+    Gathers data from entry fields and calls set_input_variables(...)
+    '''
     lengths = []
     if N == 0:
         print("Please enter an N and lengths")
@@ -203,8 +234,23 @@ def set_input_variables_w_boxes():
     point_x = point_data_boxes[0].box.get()
     point_y = point_data_boxes[1].box.get()
     set_input_variables(lengths, point_x, point_y)
+    
 set_vars_button = tkinter.Button(top, text="Set Arm Variables", command=set_input_variables_w_boxes)
 set_vars_button.place(x=10, y=350)
+
+def update_weight_scale(event):
+    '''
+    Update global W when the slider has been adjusted
+    '''
+    global W
+    W = weight_scale.widget.get()
+    update_canvas()
+
+weight_scale = Input_Thing("Weight", Vector(10, 400),
+                           tkinter.Scale(top, from_=0, to=1, resolution=0.001,
+                                         orient=tkinter.HORIZONTAL,
+                                         command=update_weight_scale))
+weight_scale.widget.set(0.5)
 
 # Update point position on mouse click
 canvas.bind("<Button-1>", set_point_from_mouse_event)
