@@ -1,5 +1,5 @@
 import math
-from n_jointed_arm_ik import Vector, two_jointed_arm_ik, n_jointed_arm_ik, recreate_point, n_joint_point_validity
+from n_jointed_arm_ik import Vector, n_jointed_arm_ik
 import tkinter
 top = tkinter.Tk()
 
@@ -19,13 +19,12 @@ class Input_Thing:
 class Input_Box (Input_Thing):
     def __init__(self, title, position):
         super().__init__(title, position, tkinter.Entry(top, width=10, justify="center"))
-class Input_Scale (Input_Thing):
+class Input_Slider (Input_Thing):
     def __init__(self, title, position, command_):
         super().__init__(title, position, tkinter.Scale(top, from_=0, to=1,
                                                         resolution=0.001,
                                                         orient=tkinter.HORIZONTAL,
                                                         command=command_))
-        
 
 NUMBER_CHARACTERS = "1234567890-+."
 
@@ -47,13 +46,15 @@ for i in range(MAX_N):
 
 canvas = None
 canvas_size = 400
-canvas_scale = 30
+center_offset = canvas_size / 2.0
+MAX_SCALE = 100
+canvas_scale = 0.5 * MAX_SCALE
 
 canvas = tkinter.Canvas(top, width=canvas_size, height=canvas_size, bg="white")
 canvas.place(x=325, y=10)
 
 def draw_rectangle(position, length, radians):
-    WIDTH = 0.1
+    WIDTH = 0.15
     points = []
     points.append(position.x + WIDTH * math.cos(radians+math.pi/2))
     points.append(position.y + WIDTH * math.sin(radians+math.pi/2))
@@ -63,7 +64,10 @@ def draw_rectangle(position, length, radians):
     points.append(points[3] - WIDTH * math.sin(radians+math.pi/2) * 2)
     points.append(position.x - WIDTH * math.cos(radians+math.pi/2))
     points.append(position.y - WIDTH * math.sin(radians+math.pi/2))
-    
+
+    for i in range(len(points)):
+        points[i] += center_offset
+        
     canvas.create_polygon(points, fill="black")
 
 def update_canvas():
@@ -75,10 +79,10 @@ def update_canvas():
     global L
     global POINT
     
-    reach = n_joint_point_validity(L, POINT)
-    if not reach:
-        return
     A = n_jointed_arm_ik(L, W, POINT)
+    if A == None:
+        return
+    canvas.delete("all")
     position = Vector(0.0, 0.0)
     for i in range(len(L)):
         angle_display_boxes[i].widget.config(state="normal")
@@ -92,16 +96,18 @@ def update_canvas():
         
     # Draw circles that represent origin and endpoint
     r = 0.1
-    canvas.create_oval(-r, -r, r, r, 
+    offset = canvas_size / 2.0
+    
+    canvas.create_oval(-r + offset, -r + offset, r + offset, r + offset, 
                        fill="#11f", width=0.0)
-    canvas.create_oval(POINT.x-r, POINT.y-r, POINT.x+r, POINT.y+r,
+    canvas.create_oval(POINT.x-r + offset, POINT.y-r + offset,
+                       POINT.x+r + offset, POINT.y+r + offset,
                        fill="#f11", width=0.0)
     
     # Scale and translate canvas so arm appears at center
-    offset = -canvas_size / (canvas_scale * 2)
-    canvas.scale("all", offset - 0.2, -offset - 0.2,
-                 canvas_scale, -canvas_scale)
-
+    canvas.scale("all", center_offset, center_offset,
+                 canvas_scale, -1.0 * canvas_scale)
+    
 point_data_boxes = [Input_Box("Point X: ", Vector(10, 270)),
                   Input_Box("Point Y: ", Vector(10, 290))]
 point_data_boxes[0].widget.insert(0, "0")
@@ -110,6 +116,7 @@ point_data_boxes[1].widget.insert(0, "0")
 def set_point(x, y):
     global POINT
     POINT = Vector(x, y)
+    
     update_canvas()
     
     point_data_boxes[0].widget.delete(0, tkinter.END)
@@ -129,8 +136,6 @@ def set_point_from_mouse_event(event):
     # Translate coordinates
     x = x - 0.5 * (canvas_size / canvas_scale)
     y = y + 0.5 * (canvas_size / canvas_scale)
-    
-    # Update data boxes to display current end-point
     
     set_point(x, y)
 
@@ -229,21 +234,27 @@ def set_input_variables_w_boxes():
 set_vars_button = tkinter.Button(top, text="Set Arm Variables", command=set_input_variables_w_boxes)
 set_vars_button.place(x=10, y=350)
 
-def update_weight_scale(event):
+def update_weight_slider(event):
     '''
     Update global W when the slider has been adjusted
     '''
     global W
-    W = weight_scale.widget.get()
+    W = weight_slider.widget.get()
     update_canvas()
-'''
-weight_scale = Input_Thing("Weight", Vector(10, 400),
-                           tkinter.Scale(top, from_=0, to=1, resolution=0.001,
-                                         orient=tkinter.HORIZONTAL,
-                                         command=update_weight_scale))
-'''
-weight_scale = Input_Scale("Weight", Vector(10, 400), update_weight_scale)
-weight_scale.widget.set(0.5)
+    
+weight_slider = Input_Slider("Weight", Vector(10, 400), update_weight_slider)
+weight_slider.widget.set(0.5)
+
+def update_scale_slider(event):
+    '''
+    Update canvas scale
+    '''
+    global canvas_scale
+    canvas_scale = (scale_slider.get() * 0.99) * MAX_SCALE
+    update_canvas()
+    
+scale_slider = Input_Slider("Scale", Vector(10, 450), update_scale_slider)
+scale_slider.widget.set(0.9)
 
 # Update point position on mouse click
 canvas.bind("<Button-1>", set_point_from_mouse_event)
