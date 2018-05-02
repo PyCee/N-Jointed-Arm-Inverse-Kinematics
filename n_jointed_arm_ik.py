@@ -80,10 +80,7 @@ def two_jointed_arm_ik(length_1, length_2, point):
 
     if not two_joint_point_validity(max(length_1, length_2),
                                     min(length_1, length_2), point):
-        print("ERROR::Two joint IK not valid::\n" + \
-              "\tlength_1, length_2: " + str(length_1) + ", " + str(length_2) + "\n" \
-              "\tdistance: " + str(distance))
-        return 0.0, 0.0
+        return None
         
     x_neg = point.x < 0.0
     relative_angle = 0.0
@@ -118,7 +115,6 @@ def two_jointed_arm_ik(length_1, length_2, point):
 
 def n_jointed_arm_ik(lengths, weight, point):
     if not n_joint_point_validity(lengths, point):
-        print("Attempting to find joint solution where none exists")
         return None
     
     resulting_angles = [0] * len(lengths)
@@ -146,9 +142,13 @@ def n_jointed_arm_ik(lengths, weight, point):
                     mult = max(mult, 0.0)
                 
             # Run a two jointed arm ik to find the angle for this joint
-            a_1, a_2 = two_jointed_arm_ik(length_1 * mult,
-                                          length_2 * mult,
-                                          point)
+            angles = two_jointed_arm_ik(length_1 * mult,
+                                        length_2 * mult,
+                                        point)
+            if angles == None:
+                return None
+            a_1, a_2 = angles
+            
         # Store relative angle values
         resulting_angles[index] += a_1
         if index >= 1:
