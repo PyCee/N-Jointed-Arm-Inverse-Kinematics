@@ -19,7 +19,13 @@ class Vector:
         return math.fabs(self.x - vec.x) < 0.01 and \
             math.fabs(self.y - vec.y) < 0.01
     
-
+def two_joint_range(length_1, length_2):
+    '''
+    return the lower and upper ranges of motionthe two jointed arm
+    '''
+    lower = max([length_1, length_2]) - min([length_1, length_2])
+    upper = length_1 + length_2
+    return lower, upper
 def two_joint_point_validity(length_1, length_2, point):
     '''
     return True if a two jointed arm with arms of lengths
@@ -30,27 +36,42 @@ def two_joint_point_validity(length_1, length_2, point):
 
     # To help correct error
     length_2 *= 1.000000001
-    r_1 = length_1 + length_2
-    r_2 = length_1 - length_2
+    r_1, r_2 = two_joint_range(length_1, length_2)
     distance = point.magnitude()
-    if min([r_1, r_2]) <= distance and distance <= max([r_1, r_2]):
+    if r_1 <= distance and distance <= r_2:
         # If distance is within our valid range
         return True
     else:
         return False
+    
+def n_joint_range(L):
+    '''
+    return the lower and upper bounds of the n-jointed arm's range
+    '''
+    lengths = L[:]
+    lengths.sort(reverse=True)
+    r_1 = lengths[0]
+    r_2 = lengths[len(lengths) - 1]
+    index = 1
+    for i in range(len(lengths)):
+        r_1 = sum(lengths[:i])
+        r_2 = sum(lengths[i:])
+        if r_1 < r_2:
+            index = i
+            break
+    lower = sum(lengths[:index])
+    upper = sum(lengths[index:])
+    return lower, upper
+    
 def n_joint_point_validity(L, point):
     '''
     returns True if an N-jointed arm with lengths array L
     can reach point
     '''
-    lengths = L[:]
-    lengths.sort(reverse=True)
-    for i in range(1, len(lengths)):
-        large = sum(lengths[:i])
-        small = sum(lengths[i:])
-        if two_joint_point_validity(large, small, point):
-            return True
-    return False
+    r_1, r_2 = n_joint_range(L)
+    distance = point.magnitude()
+    return r_1 < distance and distance < r_2
+
 def recreate_point(lengths, angles):
     recreated_point = Vector(0.0, 0.0)
     for index in range(len(lengths)):

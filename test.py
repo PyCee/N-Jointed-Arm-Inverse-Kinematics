@@ -18,6 +18,12 @@ class Test:
 two_joint_validity_test_1 = Test("Two Joint Validity Test #1", [10, 1], Vector(5.0, 0.0))
 two_joint_validity_test_1.test(lambda L, P: two_joint_point_validity(L[0], L[1], P),
                                lambda L, P, result: result == False)
+two_joint_validity_test_2 = Test("Two Joint Validity Test #2", [1, 10], Vector(5.0, 0.0))
+two_joint_validity_test_2.test(lambda L, P: two_joint_point_validity(L[0], L[1], P),
+                               lambda L, P, result: result == False)
+two_joint_validity_test_3 = Test("Two Joint Validity Test #3", [10, 1], Vector(9.0, 0.0))
+two_joint_validity_test_3.test(lambda L, P: two_joint_point_validity(L[0], L[1], P),
+                               lambda L, P, result: result == True)
 
 n_joint_validity_test_1 = Test("N Joint Validity Test #1", [2, 6, 5], Vector(0.5, 0.0))
 n_joint_validity_test_1.test(lambda L, P: n_joint_point_validity(L, P),
