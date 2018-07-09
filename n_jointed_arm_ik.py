@@ -50,17 +50,17 @@ def n_joint_range(L):
     '''
     lengths = L[:]
     lengths.sort(reverse=True)
-    r_1 = lengths[0]
-    r_2 = lengths[len(lengths) - 1]
     index = 1
-    for i in range(len(lengths)):
+    for i in range(1, len(lengths)):
         r_1 = sum(lengths[:i])
         r_2 = sum(lengths[i:])
         if r_1 < r_2:
             index = i
             break
-    lower = sum(lengths[:index])
-    upper = sum(lengths[index:])
+    r_1 = sum(lengths[:index])
+    r_2 = sum(lengths[index:])
+    lower = max(r_1 - r_2, 0.0)
+    upper = sum(lengths)
     return lower, upper
     
 def n_joint_point_validity(L, point):

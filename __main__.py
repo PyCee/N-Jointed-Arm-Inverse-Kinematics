@@ -1,5 +1,5 @@
 import math
-from n_jointed_arm_ik import Vector, n_jointed_arm_ik
+from n_jointed_arm_ik import Vector, n_jointed_arm_ik, n_joint_range
 import tkinter
 top = tkinter.Tk()
 
@@ -9,22 +9,26 @@ class Input_Thing:
         self.position = position
         self.label = tkinter.Label(top, text=title)
         self.label.place(x=position.x, y=position.y)
-        self.widget = widget#tkinter.Entry(top, width=10, justify="center")
+        self.widget = widget
         self.set_position(position)
     def set_position(self, position):
         self.label.place(x=position.x, y=position.y)
-        self.widget.place(x=position.x + 7*len(self.title), y=position.y)
+        self.widget.place(x=position.x + 7*len(self.title),
+                          y=position.y)
     def get(self):
         return self.widget.get()
 class Input_Box (Input_Thing):
     def __init__(self, title, position):
-        super().__init__(title, position, tkinter.Entry(top, width=10, justify="center"))
+        super().__init__(title, position,
+                         tkinter.Entry(top, width=10,
+                                       justify="center"))
 class Input_Slider (Input_Thing):
     def __init__(self, title, position, command_):
-        super().__init__(title, position, tkinter.Scale(top, from_=0, to=1,
-                                                        resolution=0.001,
-                                                        orient=tkinter.HORIZONTAL,
-                                                        command=command_))
+        super().__init__(title, position,
+                         tkinter.Scale(top, from_=0, to=1,
+                                       resolution=0.001,
+                                       orient=tkinter.HORIZONTAL,
+                                       command=command_))
 
 NUMBER_CHARACTERS = "1234567890-+."
 
@@ -78,11 +82,37 @@ def update_canvas():
     global canvas
     global L
     global POINT
+
+    if not POINT:
+        return
+    if not L:
+        return
+    
+    canvas.delete("all")
+    
+    offset = canvas_size / 2.0
+    LOW, UPP = n_joint_range(L)
+    
+    # Draw arm bounds
+    BOUNDS_COLOR = "#555"
+    BOUNDS_SIZE = 2.0
+    canvas.create_oval(-LOW + offset, -LOW + offset,
+                       LOW + offset, LOW + offset, 
+                       fill="", outline=BOUNDS_COLOR, width=BOUNDS_SIZE)
+    canvas.create_oval(-UPP + offset, -UPP + offset,
+                       UPP + offset, UPP + offset, 
+                       fill="", outline=BOUNDS_COLOR, width=BOUNDS_SIZE)
+
+    # Scale POINT if it is outside the bounds
+    if not POINT.magnitude() == 0.0:
+        if POINT.magnitude() < LOW:
+            POINT = POINT.scale(LOW / (POINT.magnitude() * 0.999999999))
+        if POINT.magnitude() > UPP:
+            POINT = POINT.scale(UPP * 0.999999999 / POINT.magnitude())
     
     A = n_jointed_arm_ik(L, W, POINT)
     if A == None:
         return
-    canvas.delete("all")
     position = Vector(0.0, 0.0)
     for i in range(len(L)):
         angle_display_boxes[i].widget.config(state="normal")
@@ -96,8 +126,6 @@ def update_canvas():
         
     # Draw circles that represent origin and endpoint
     r = 0.1
-    offset = canvas_size / 2.0
-    
     canvas.create_oval(-r + offset, -r + offset, r + offset, r + offset, 
                        fill="#11f", width=0.0)
     canvas.create_oval(POINT.x-r + offset, POINT.y-r + offset,
