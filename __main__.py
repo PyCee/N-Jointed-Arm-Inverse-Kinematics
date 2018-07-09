@@ -102,7 +102,7 @@ def update_canvas():
     canvas.create_oval(-UPP + offset, -UPP + offset,
                        UPP + offset, UPP + offset, 
                        fill="", outline=BOUNDS_COLOR, width=BOUNDS_SIZE)
-
+    
     # Scale POINT if it is outside the bounds
     if not POINT.magnitude() == 0.0:
         if POINT.magnitude() < LOW:

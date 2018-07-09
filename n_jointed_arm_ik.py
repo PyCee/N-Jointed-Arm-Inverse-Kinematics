@@ -36,13 +36,10 @@ def two_joint_point_validity(length_1, length_2, point):
 
     # To help correct error
     length_2 *= 1.000000001
+    
     r_1, r_2 = two_joint_range(length_1, length_2)
     distance = point.magnitude()
-    if r_1 <= distance and distance <= r_2:
-        # If distance is within our valid range
-        return True
-    else:
-        return False
+    return r_1 <= distance and distance <= r_2
     
 def n_joint_range(L):
     '''
