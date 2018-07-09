@@ -278,7 +278,7 @@ def update_scale_slider(event):
     Update canvas scale
     '''
     global canvas_scale
-    canvas_scale = (scale_slider.get() * 0.99) * MAX_SCALE
+    canvas_scale = scale_slider.get() * 0.99 * MAX_SCALE + (MAX_SCALE * 0.01)
     update_canvas()
     
 scale_slider = Input_Slider("Scale", Vector(10, 450), update_scale_slider)
