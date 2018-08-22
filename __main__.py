@@ -55,7 +55,7 @@ for i in range(MAX_N):
 canvas = None
 canvas_size = 400
 center_offset = canvas_size / 2.0
-MAX_SCALE = 50
+MAX_SCALE = 100
 canvas_scale = 0.5 * MAX_SCALE
 
 canvas = tkinter.Canvas(top, width=canvas_size, height=canvas_size, bg="white")
