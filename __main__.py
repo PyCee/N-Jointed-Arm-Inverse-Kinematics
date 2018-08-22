@@ -51,7 +51,7 @@ for i in range(MAX_N):
 canvas = None
 canvas_size = 400
 center_offset = canvas_size / 2.0
-MAX_SCALE = 100
+MAX_SCALE = 50
 canvas_scale = 0.5 * MAX_SCALE
 
 canvas = tkinter.Canvas(top, width=canvas_size, height=canvas_size, bg="white")
@@ -111,26 +111,25 @@ def update_canvas():
             POINT = POINT.scale(UPP * 0.999999999 / POINT.magnitude())
     
     A = n_jointed_arm_ik(L, W, POINT)
-    if A == None:
-        return
-    position = Vector(0.0, 0.0)
-    for i in range(len(L)):
-        angle_display_boxes[i].widget.config(state="normal")
-        angle_display_boxes[i].widget.delete(0, tkinter.END)
-        angle_display_boxes[i].widget.insert(0, str(round(A[i] * 180 / 3.14159, 3)))
-        angle_display_boxes[i].widget.config(state="disabled")
-        absolute_angle = sum(A[:i+1])
-        draw_rectangle(position, L[i], absolute_angle)
-        position = position.add(Vector(L[i] * math.cos(absolute_angle),
-                                       L[i] * math.sin(absolute_angle)))
+    if not A == None:
+        position = Vector(0.0, 0.0)
+        for i in range(len(L)):
+            angle_display_boxes[i].widget.config(state="normal")
+            angle_display_boxes[i].widget.delete(0, tkinter.END)
+            angle_display_boxes[i].widget.insert(0, str(round(A[i] * 180 / 3.14159, 3)))
+            angle_display_boxes[i].widget.config(state="disabled")
+            absolute_angle = sum(A[:i+1])
+            draw_rectangle(position, L[i], absolute_angle)
+            position = position.add(Vector(L[i] * math.cos(absolute_angle),
+                                           L[i] * math.sin(absolute_angle)))
         
-    # Draw circles that represent origin and endpoint
-    r = 0.1
-    canvas.create_oval(-r + offset, -r + offset, r + offset, r + offset, 
-                       fill="#11f", width=0.0)
-    canvas.create_oval(POINT.x-r + offset, POINT.y-r + offset,
-                       POINT.x+r + offset, POINT.y+r + offset,
-                       fill="#f11", width=0.0)
+        # Draw circles that represent origin and endpoint
+        r = 0.1
+        canvas.create_oval(-r + offset, -r + offset, r + offset, r + offset, 
+                           fill="#11f", width=0.0)
+        canvas.create_oval(POINT.x-r + offset, POINT.y-r + offset,
+                           POINT.x+r + offset, POINT.y+r + offset,
+                           fill="#f11", width=0.0)
     
     # Scale and translate canvas so arm appears at center
     canvas.scale("all", center_offset, center_offset,
@@ -282,7 +281,7 @@ def update_scale_slider(event):
     update_canvas()
     
 scale_slider = Input_Slider("Scale", Vector(10, 450), update_scale_slider)
-scale_slider.widget.set(0.9)
+scale_slider.widget.set(0.5)
 
 # Update point position on mouse click
 canvas.bind("<Button-1>", set_point_from_mouse_event)

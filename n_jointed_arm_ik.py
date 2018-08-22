@@ -26,7 +26,7 @@ def two_joint_range(length_1, length_2):
     lower = max([length_1, length_2]) - min([length_1, length_2])
     upper = length_1 + length_2
     return lower, upper
-def two_joint_point_validity(length_1, length_2, point):
+def two_joint_validity(length_1, length_2, point):
     '''
     return True if a two jointed arm with arms of lengths
     length_1 and length_2 can reach point
@@ -60,7 +60,7 @@ def n_joint_range(L):
     upper = sum(lengths)
     return lower, upper
     
-def n_joint_point_validity(L, point):
+def n_joint_validity(L, point):
     '''
     returns True if an N-jointed arm with lengths array L
     can reach point
@@ -96,7 +96,7 @@ def two_jointed_arm_ik(length_1, length_2, point):
     '''
     distance = point.magnitude()
 
-    if not two_joint_point_validity(max(length_1, length_2),
+    if not two_joint_validity(max(length_1, length_2),
                                     min(length_1, length_2), point):
         return None
         
@@ -132,7 +132,7 @@ def two_jointed_arm_ik(length_1, length_2, point):
     return angle_1, angle_2
 
 def n_jointed_arm_ik(lengths, weight, point):
-    if not n_joint_point_validity(lengths, point):
+    if not n_joint_validity(lengths, point):
         return None
     
     resulting_angles = [0] * len(lengths)
