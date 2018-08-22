@@ -59,12 +59,9 @@ class N_Joint_Test (Test):
             if (angles == None) or not recreate_point(self.lengths,
                                                       angles).equals(self.point):
                 print("With weight: " + str(weight) + ",")
-                success = False
-                break
-        if success:
-            self.succeed()
-        else:
-            self.fail()
+                self.fail()
+                return
+        self.succeed()
 
 two_joint_validity_test_1 = Two_Joint_Validity_Test("Two Joint Validity Test #1",
                                                     [10, 1], Vector(5.0, 0.0), False)

@@ -1,7 +1,11 @@
 import math
 from n_jointed_arm_ik import Vector, n_jointed_arm_ik, n_joint_range
 import tkinter
+
+TITLE = "N-Joint Inverse Kinematics"
+
 top = tkinter.Tk()
+top.title(TITLE)
 
 class Input_Thing:
     def __init__(self, title, position, widget):
