@@ -8,12 +8,15 @@ class Test:
         self.title = T
         self.lengths = L
         self.point = P
+        self.succeeded = False
     def test(self):
         pass
     def succeed(self):
-            print(self.title + ": Succeeded")
+        self.succeeded = True
+        print(self.title + ": Succeeded")
     def fail(self):
-            print(self.title + ": Failed")
+        self.succeeded = False
+        print(self.title + ": Failed")
 class Validity_Test (Test):
     def __init__(self, T, L, P, V):
         super().__init__(T, L, P)
@@ -51,11 +54,10 @@ class N_Joint_Validity_Test (Validity_Test):
             self.fail()
 class N_Joint_Test (Test):
     def test(self):
-        # TODO: loop through weights
-        success = True
         for i in range(101):
             weight = i / 100.0
             angles = n_jointed_arm_ik(self.lengths, weight, self.point)
+            #print(angles)
             if (angles == None) or not recreate_point(self.lengths,
                                                       angles).equals(self.point):
                 print("With weight: " + str(weight) + ",")
@@ -118,4 +120,6 @@ n_joint_ik_test_6.test()
 n_joint_ik_test_7 = N_Joint_Test("N Joint IK Test #7", [1, 0.5, 3], Vector(1.51, 0.0))
 n_joint_ik_test_7.test()
 
-print("TODO: fix problem with lower multiplier bound in n-joint solutions")
+n_joint_ik_test_8 = N_Joint_Test("N Joint IK Test #8", [1, 1, 0.5, 3, 0.5, 4],
+                                 Vector(1.5, 0.0))
+n_joint_ik_test_8.test()

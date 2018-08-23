@@ -35,7 +35,7 @@ def two_joint_validity(length_1, length_2, point):
     '''
 
     # To help correct error
-    length_2 *= 1.000000001
+    length_2 *= 1.00000000001
     
     r_1, r_2 = two_joint_range(length_1, length_2)
     distance = point.magnitude()
@@ -95,11 +95,6 @@ def two_jointed_arm_ik(length_1, length_2, point):
     the angles for each joint.
     '''
     distance = point.magnitude()
-
-    if not two_joint_validity(max(length_1, length_2),
-                                    min(length_1, length_2), point):
-        return None
-        
     x_neg = point.x < 0.0
     relative_angle = 0.0
     x_1 = 0.0
@@ -144,6 +139,7 @@ def n_jointed_arm_ik(lengths, weight, point):
         a_1 = 0.0
         a_2 = 0.0
         if not point.magnitude() == 0.0:
+            '''
             if index < len(lengths)-2:
                 minimum_mult = point.magnitude() / (length_1 + length_2)
                 minimum_mult = min(minimum_mult, 1.0)
@@ -163,6 +159,19 @@ def n_jointed_arm_ik(lengths, weight, point):
             angles = two_jointed_arm_ik(length_1 * mult,
                                         length_2 * mult,
                                         point)
+            '''
+            if index < len(lengths)-2:
+                low, upp = n_joint_range(lengths[index+1:])
+                
+                min_length_2 = max((0.00000000001, low,
+                                    math.fabs(point.magnitude() - length_1)))
+                max_length_2 = min(upp, point.magnitude() + length_1)
+                length_2 = min_length_2 + weight * (max_length_2 - min_length_2)
+                if length_2 == 0.0:
+                    length_2 = 0.0000000001
+            # Run a two jointed arm ik to find the angle for this joint
+            angles = two_jointed_arm_ik(length_1, length_2, point)
+            
             if angles == None:
                 return None
             a_1, a_2 = angles
@@ -171,7 +180,6 @@ def n_jointed_arm_ik(lengths, weight, point):
         resulting_angles[index] += a_1
         if index >= 1:
             resulting_angles[index] -= sum(resulting_angles[:index])
-            #resulting_angles[index] -= resulting_angles[index-1]
         if index == len(lengths)-2:
             resulting_angles[index+1] = a_2
             
@@ -180,6 +188,5 @@ def n_jointed_arm_ik(lengths, weight, point):
         offset = Vector(lengths[index] * math.cos(absolute_angle),
                         lengths[index] * math.sin(absolute_angle))
         point = point.subtract(offset)
-        point = point.scale(0.999999999)
 
     return resulting_angles
