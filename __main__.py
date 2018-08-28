@@ -61,6 +61,21 @@ canvas_scale = 0.5 * MAX_SCALE
 canvas = tkinter.Canvas(top, width=canvas_size, height=canvas_size, bg="white")
 canvas.place(x=325, y=10)
 
+def get_effective_width():
+    return canvas_size / canvas_scale
+def get_grid_offset():
+    effective_width = get_effective_width()
+    half_effective_width = effective_width / 2.0
+    upper_width = 2.0
+    while upper_width < 200:
+        if half_effective_width <= upper_width:
+            break
+        else:
+            upper_width *= 2.0
+            
+    grid_line_offset = upper_width / 4.0
+    return grid_line_offset
+
 def draw_rectangle(position, length, radians):
     WIDTH = 0.15
     points = []
@@ -91,7 +106,6 @@ def update_canvas():
         return
     if not L:
         return
-    
     canvas.delete("all")
     
     offset = canvas_size / 2.0
@@ -113,14 +127,43 @@ def update_canvas():
             POINT = POINT.scale(LOW / (POINT.magnitude() * 0.999999999))
         if POINT.magnitude() > UPP:
             POINT = POINT.scale(UPP * 0.999999999 / POINT.magnitude())
-    
+
+    grid_line_offset = get_grid_offset()
+    half_line_width = 0.75 / canvas_scale
+
+    # Draw vertical grid lines
+    for i in range(-6, 7):
+        points = [
+            grid_line_offset * i + half_line_width, -get_effective_width(),
+            grid_line_offset * i + half_line_width, get_effective_width(),
+            grid_line_offset * i - half_line_width, get_effective_width(),
+            grid_line_offset * i - half_line_width, -get_effective_width()
+        ]
+        for i in range(len(points)):
+            points[i] += center_offset
+        canvas.create_polygon(points, fill="black")
+        
+    # Draw horizontal grid lines
+    for i in range(-6, 7):
+        points = [
+            -get_effective_width(), grid_line_offset * i + half_line_width,
+            get_effective_width(), grid_line_offset * i + half_line_width,
+            get_effective_width(), grid_line_offset * i - half_line_width,
+            -get_effective_width(), grid_line_offset * i - half_line_width
+        ]
+        for i in range(len(points)):
+            points[i] += center_offset
+        canvas.create_polygon(points, fill="black")
+        
+            
     A = n_jointed_arm_ik(L, W, POINT)
     if not A == None:
         position = Vector(0.0, 0.0)
         for i in range(len(L)):
             angle_display_boxes[i].widget.config(state="normal")
             angle_display_boxes[i].widget.delete(0, tkinter.END)
-            angle_display_boxes[i].widget.insert(0, str(round(A[i] * 180 / 3.14159, 3)))
+            angle = round(A[i] * 180 / 3.14159, 3)
+            angle_display_boxes[i].widget.insert(0, str(angle))
             angle_display_boxes[i].widget.config(state="disabled")
             absolute_angle = sum(A[:i+1])
             draw_rectangle(position, L[i], absolute_angle)
