@@ -77,7 +77,7 @@ def get_grid_offset():
     return grid_line_offset
 
 def draw_rectangle(position, length, radians):
-    WIDTH = 0.15
+    WIDTH = 3.0 / canvas_scale
     points = []
     points.append(position.x + WIDTH * math.cos(radians+math.pi/2))
     points.append(position.y + WIDTH * math.sin(radians+math.pi/2))
@@ -128,33 +128,45 @@ def update_canvas():
         if POINT.magnitude() > UPP:
             POINT = POINT.scale(UPP * 0.999999999 / POINT.magnitude())
 
+    # Draw grid lines
     grid_line_offset = get_grid_offset()
     half_line_width = 0.75 / canvas_scale
+    GRID_COLOR = "#aaa"
+    for i in range(-6, 7):
+        line_value = grid_line_offset * i
+        upper_line_value = line_value + half_line_width
+        lower_line_value = line_value - half_line_width
+        vert_points = [upper_line_value, -get_effective_width(),
+                       upper_line_value, get_effective_width(),
+                       lower_line_value, get_effective_width(),
+                       lower_line_value, -get_effective_width()]
+        horiz_points = [-get_effective_width(), upper_line_value,
+                        get_effective_width(), upper_line_value,
+                        get_effective_width(), lower_line_value,
+                        -get_effective_width(), lower_line_value]
+        for j in range(8):
+            vert_points[j] += center_offset
+            horiz_points[j] += center_offset
+        
+        canvas.create_polygon(vert_points, fill=GRID_COLOR)
+        canvas.create_polygon(horiz_points, fill=GRID_COLOR)
 
-    # Draw vertical grid lines
-    for i in range(-6, 7):
-        points = [
-            grid_line_offset * i + half_line_width, -get_effective_width(),
-            grid_line_offset * i + half_line_width, get_effective_width(),
-            grid_line_offset * i - half_line_width, get_effective_width(),
-            grid_line_offset * i - half_line_width, -get_effective_width()
-        ]
-        for i in range(len(points)):
-            points[i] += center_offset
-        canvas.create_polygon(points, fill="black")
-        
-    # Draw horizontal grid lines
-    for i in range(-6, 7):
-        points = [
-            -get_effective_width(), grid_line_offset * i + half_line_width,
-            get_effective_width(), grid_line_offset * i + half_line_width,
-            get_effective_width(), grid_line_offset * i - half_line_width,
-            -get_effective_width(), grid_line_offset * i - half_line_width
-        ]
-        for i in range(len(points)):
-            points[i] += center_offset
-        canvas.create_polygon(points, fill="black")
-        
+        line_position = center_offset + lower_line_value
+        displayed_line_value = str(line_value).rstrip('0').rstrip('.')
+        if i != 0:
+            # If this is the center line, don't draw the line value
+            #   (it looksbad if draw alongside the value for the
+            #   horizontal center line)
+            
+            # Display vertical line values
+            canvas.create_text(line_position, center_offset,
+                               font=("Times", 10, "bold"), fill="black",
+                               anchor="se", text=displayed_line_value)
+            
+        # Display horizontal line values
+        canvas.create_text(center_offset, line_position,
+                           font=("Times", 10, "bold"), fill="black",
+                           anchor="sw", text=displayed_line_value)
             
     A = n_jointed_arm_ik(L, W, POINT)
     if not A == None:
@@ -171,7 +183,7 @@ def update_canvas():
                                            L[i] * math.sin(absolute_angle)))
         
         # Draw circles that represent origin and endpoint
-        r = 0.1
+        r = 4.0 / canvas_scale
         canvas.create_oval(-r + offset, -r + offset, r + offset, r + offset, 
                            fill="#11f", width=0.0)
         canvas.create_oval(POINT.x-r + offset, POINT.y-r + offset,
