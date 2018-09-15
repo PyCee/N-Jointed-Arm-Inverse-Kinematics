@@ -76,21 +76,47 @@ def get_grid_offset():
     grid_line_offset = upper_width / 4.0
     return grid_line_offset
 
-def draw_rectangle(position, length, radians):
-    WIDTH = 3.0 / canvas_scale
-    points = []
-    points.append(position.x + WIDTH * math.cos(radians+math.pi/2))
-    points.append(position.y + WIDTH * math.sin(radians+math.pi/2))
-    points.append(points[0] + length * math.cos(radians))
-    points.append(points[1] + length * math.sin(radians))
-    points.append(points[2] - WIDTH * math.cos(radians+math.pi/2) * 2)
-    points.append(points[3] - WIDTH * math.sin(radians+math.pi/2) * 2)
-    points.append(position.x - WIDTH * math.cos(radians+math.pi/2))
-    points.append(position.y - WIDTH * math.sin(radians+math.pi/2))
+def draw_arm(position, length,
+                   absolute_radians, relative_radians):
+    ARM_WIDTH = 3.0 / canvas_scale
+    ARC_WIDTH = 7.0 * ARM_WIDTH
 
-    for i in range(len(points)):
-        points[i] += center_offset
-        
+    cos_width = ARM_WIDTH * math.cos(absolute_radians+math.pi/2)
+    sin_width = ARM_WIDTH * math.sin(absolute_radians+math.pi/2)
+    
+    cos_length = length * math.cos(absolute_radians)
+    sin_length = length * math.sin(absolute_radians)
+    offset = Vector(cos_length, sin_length)
+    
+    start_point = position.add(Vector(center_offset, center_offset))
+    end_point = start_point.add(offset)
+
+    # Draw arc to show angle
+    absolute_angle = absolute_radians * 180.0 / 3.14159
+    relative_angle = relative_radians * 180.0 / 3.14159
+    canvas.create_arc(start_point.x - ARC_WIDTH, start_point.y - ARC_WIDTH,
+                      start_point.x + ARC_WIDTH, start_point.y + ARC_WIDTH,
+                      start=absolute_angle, extent=-1.0 * relative_angle,
+                      fill="#bbbbbb")
+
+    # Draw text to show angle
+
+    angle_text_distance = 0.5
+    text_radians = absolute_radians - relative_radians / 2.0
+    text_base = Vector(math.cos(text_radians),
+                       math.sin(text_radians)).scale(angle_text_distance)
+    text_base = text_base.add(start_point)
+    canvas.create_text(text_base.x, text_base.y,
+                       font=("Times", 10, "bold"), fill="black",
+                       anchor="s", text=str(round(relative_angle, 2)))
+    
+    # Draw rectangle to represent arm
+    points = [
+        start_point.x + cos_width, start_point.y + sin_width,
+        end_point.x + cos_width, end_point.y + sin_width,
+        end_point.x - cos_width, end_point.y - sin_width,
+        start_point.x - cos_width, start_point.y - sin_width,
+    ]
     canvas.create_polygon(points, fill="black")
 
 def update_canvas():
@@ -160,8 +186,9 @@ def update_canvas():
             
             # Display vertical line values
             canvas.create_text(line_position, center_offset,
-                               font=("Times", 10, "bold"), fill="black",
-                               anchor="se", text=displayed_line_value)
+                               font=("Times", 10, "bold"),
+                               fill="black", anchor="se",
+                               text=displayed_line_value)
             
         # Display horizontal line values
         canvas.create_text(center_offset, line_position,
@@ -178,7 +205,7 @@ def update_canvas():
             angle_display_boxes[i].widget.insert(0, str(angle))
             angle_display_boxes[i].widget.config(state="disabled")
             absolute_angle = sum(A[:i+1])
-            draw_rectangle(position, L[i], absolute_angle)
+            draw_arm(position, L[i], absolute_angle, A[i])
             position = position.add(Vector(L[i] * math.cos(absolute_angle),
                                            L[i] * math.sin(absolute_angle)))
         
