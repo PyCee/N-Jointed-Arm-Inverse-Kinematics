@@ -23,32 +23,24 @@ class Validity_Test (Test):
         self.is_valid = V
 class Two_Joint_Validity_Test (Validity_Test):
     def test(self):
-        if len(self.lengths) < 2:
-            print(self.title + " has too few lengths for a two joint test")
-            self.fail()
-        elif len(self.lengths) > 2:
-            print(self.title + " has too many lengths for a two joint test")
-            self.fail()
-        elif two_joint_validity(self.lengths[0], self.lengths[1],
-                                      self.point) == self.is_valid:
+        if two_joint_validity(self.lengths[0], self.lengths[1],
+                              self.point) == self.is_valid:
             self.succeed()
         else:
             self.fail()
 class Two_Joint_Test (Test):
+    #TODO make tests for failing
     def test(self):
-        if len(self.lengths) < 2:
-            print(self.title + " has too few lengths for a two joint test")
-            self.fail()
-        elif len(self.lengths) > 2:
-            print(self.title + " has too many lengths for a two joint test")
-            self.fail()
-        elif two_jointed_arm_ik(self.lengths[0], self.lengths[1], self.point) != None:
+        angles = two_jointed_arm_ik(self.lengths[0],
+                                    self.lengths[1], self.point)
+        if(self.point.equals(recreate_point(self.lengths, angles))):
             self.succeed()
         else:
             self.fail()
 class N_Joint_Validity_Test (Validity_Test):
     def test(self):
-        if n_joint_validity(self.lengths, self.point) == self.is_valid:
+        if n_joint_validity(self.lengths, self.point) == \
+           self.is_valid:
             self.succeed()
         else:
             self.fail()
@@ -56,10 +48,13 @@ class N_Joint_Test (Test):
     def test(self):
         for i in range(101):
             weight = i / 100.0
-            angles = n_jointed_arm_ik(self.lengths, weight, self.point)
+            angles = n_jointed_arm_ik(self.lengths,
+                                      [weight] * len(self.lengths),
+                                      self.point)
             #print(angles)
-            if (angles == None) or not recreate_point(self.lengths,
-                                                      angles).equals(self.point):
+            if (angles == None) or \
+               not recreate_point(self.lengths,
+                                  angles).equals(self.point):
                 print("With weight: " + str(weight) + ",")
                 self.fail()
                 return
@@ -86,8 +81,10 @@ two_joint_ik_test_3.test()
 
 two_joint_ik_test_4 = Two_Joint_Test("Two Joint IK Test #4", [2, 2], Vector(0, -3))
 two_joint_ik_test_4.test()
-
-
+'''
+two_joint_ik_test_5 = Two_Joint_Test("Two Joint IK Test #5", [2, 2], Vector(0, 5))
+two_joint_ik_test_5.test()
+'''
 n_joint_validity_test_1 = N_Joint_Validity_Test("N Joint Validity Test #1",
                                                 [2, 6, 5], Vector(0.5, 0.0), True)
 n_joint_validity_test_1.test()

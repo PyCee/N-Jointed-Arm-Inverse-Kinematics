@@ -1,6 +1,8 @@
 import math
 import sys
 
+class OutOfRange(Exception):
+    pass
 class Vector:
     def __init__(self, x, y):
         self.x = x
@@ -67,7 +69,7 @@ def n_joint_validity(L, point):
     '''
     r_1, r_2 = n_joint_range(L)
     distance = point.magnitude()
-    return r_1 < distance and distance < r_2
+    return r_1 <= distance and distance <= r_2
 
 def recreate_point(lengths, angles):
     recreated_point = Vector(0.0, 0.0)
@@ -94,6 +96,9 @@ def two_jointed_arm_ik(length_1, length_2, point):
     of the circles. It finds the intersection point, and calculates
     the angles for each joint.
     '''
+    #TODO: below
+    '''if not two_joint_validity(length_1, length_2, point):
+        raise OutOfRange'''
     distance = point.magnitude()
     x_neg = point.x < 0.0
     relative_angle = 0.0
@@ -106,7 +111,7 @@ def two_jointed_arm_ik(length_1, length_2, point):
         
     x_2 = distance - x_1
         
-        
+    #TODO look here for jump at -270 degrees in gui
     if point.x < 0.0:
         relative_angle = 3.14159 - relative_angle
     # We use the lengths with the x values to calculate the
@@ -126,9 +131,11 @@ def two_jointed_arm_ik(length_1, length_2, point):
     angle_2 += relative_angle - angle_1
     return angle_1, angle_2
 
-def n_jointed_arm_ik(lengths, weight, point):
+def n_jointed_arm_ik(lengths, weights, point):
     if not n_joint_validity(lengths, point):
-        return None
+        raise OutOfRange
+    if len(lengths) != len(weights):
+        print("lengths of lengths != length of weights")
     
     resulting_angles = [0] * len(lengths)
     for index in range(len(lengths)-1):
@@ -139,34 +146,14 @@ def n_jointed_arm_ik(lengths, weight, point):
         a_1 = 0.0
         a_2 = 0.0
         if not point.magnitude() == 0.0:
-            '''
-            if index < len(lengths)-2:
-                minimum_mult = point.magnitude() / (length_1 + length_2)
-                minimum_mult = min(minimum_mult, 1.0)
-                
-                maximum_mult = 1.0
-                difference = math.fabs(length_2 - length_1)
-                if not difference == 0.0:
-                    # If we can go ahead with this difference
-                    maximum_mult = point.magnitude() / (difference)
-                    maximum_mult = min(maximum_mult, 1.0)
-                    
-                    mult = minimum_mult + weight * (maximum_mult - minimum_mult)
-                    mult = min(mult, 1.0)
-                    mult = max(mult, 0.0)
-                
-            # Run a two jointed arm ik to find the angle for this joint
-            angles = two_jointed_arm_ik(length_1 * mult,
-                                        length_2 * mult,
-                                        point)
-            '''
             if index < len(lengths)-2:
                 low, upp = n_joint_range(lengths[index+1:])
                 
                 min_length_2 = max((0.00000000001, low,
                                     math.fabs(point.magnitude() - length_1)))
                 max_length_2 = min(upp, point.magnitude() + length_1)
-                length_2 = min_length_2 + weight * (max_length_2 - min_length_2)
+                length_2 = min_length_2 + weights[index] * \
+                           (max_length_2 - min_length_2)
                 if length_2 == 0.0:
                     length_2 = 0.0000000001
             # Run a two jointed arm ik to find the angle for this joint
@@ -188,5 +175,4 @@ def n_jointed_arm_ik(lengths, weight, point):
         offset = Vector(lengths[index] * math.cos(absolute_angle),
                         lengths[index] * math.sin(absolute_angle))
         point = point.subtract(offset)
-
     return resulting_angles

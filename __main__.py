@@ -1,56 +1,73 @@
 import math
-from n_jointed_arm_ik import Vector, n_jointed_arm_ik, n_joint_range
+from n_jointed_arm_ik import Vector
+from arm_controller import Arm_Controller
+from page_frames import N_Frame, Length_Frame, Weight_Frame, Angle_Frame
+from canvas import IK_Canvas
+
+from input_section import Input_Box, Input_Slider
 import tkinter
+from tkinter import ttk
 
 TITLE = "N-Joint Inverse Kinematics"
+WIDTH = 750
+HEIGHT = 500
 
 top = tkinter.Tk()
 top.title(TITLE)
+top.geometry(str(WIDTH)+"x"+str(HEIGHT)+"+400+10")
 
-class Input_Thing:
-    def __init__(self, title, position, widget):
-        self.title = title
-        self.position = position
-        self.label = tkinter.Label(top, text=title)
-        self.label.place(x=position.x, y=position.y)
-        self.widget = widget
-        self.set_position(position)
-    def set_position(self, position):
-        self.label.place(x=position.x, y=position.y)
-        self.widget.place(x=position.x + 7*len(self.title),
-                          y=position.y)
-    def get(self):
-        return self.widget.get()
-class Input_Box (Input_Thing):
-    def __init__(self, title, position):
-        super().__init__(title, position,
-                         tkinter.Entry(top, width=10,
-                                       justify="center"))
-class Input_Slider (Input_Thing):
-    def __init__(self, title, position, command_):
-        super().__init__(title, position,
-                         tkinter.Scale(top, from_=0, to=1,
-                                       resolution=0.001,
-                                       orient=tkinter.HORIZONTAL,
-                                       command=command_))
+pages = ttk.Notebook(top)
+    
+arm_c = Arm_Controller()
+def get_arm_controller():
+    return arm_c
 
-NUMBER_CHARACTERS = "1234567890-+."
+def Update_N_Event(N):
+    get_arm_controller().update_N(N)
+    lengths_page.set_N(N)
+    weights_page.set_N(N)
 
-MAX_N = 10
-N = 0
-POINT = None
-L = []
-W = 0.5
+def update_arm_lengths(length_array):
+    print("updating lengths " + str(length_array))
+    get_arm_controller().update_lengths(length_array)
+    
+def update_arm_weights(weight_array):
+    print("updating weights " + str(weight_array))
+    get_arm_controller().update_weights(weight_array)
+    
+N_page = N_Frame(top, Update_N_Event)
+lengths_page = Length_Frame(top, update_arm_lengths)
+weights_page = Weight_Frame(top, update_arm_weights)
+angles_page = Angle_Frame(top)
 
+
+pages.place(x=0, y=10)
+
+pages.add(N_page, text="N")
+pages.add(lengths_page, text="Lengths")
+pages.add(weights_page, text="Weights")
+pages.add(angles_page, text="Angles")
+
+canvas = IK_Canvas(top, 400, get_arm_controller)
+
+canvas.set_position(Vector(325, 10))
+
+def update_angles(angle_array):
+    angles_page.set_elements(angle_array)
+    canvas.update()
+arm_c.set_angle_update(update_angles)
+
+
+'''
 length_input_boxes = []
 angle_display_boxes = []
 for i in range(MAX_N):
-    length_input_boxes.append(Input_Box("length_" + str(i) + ":",
-                                        Vector(10, i * 20 + 50)))
-    length_input_boxes[i].widget.config(state="disabled")
-    angle_display_boxes.append(Input_Box("angle_" + str(i) + ":",
+    #in past, created input boxes here
+    angle_display_boxes.append(Input_Box(tmp_page, "angle_" + str(i) + ":",
                                          Vector(170, i * 20 + 50)))
     angle_display_boxes[i].widget.config(state="disabled")
+
+
 
 canvas = None
 canvas_size = 400
@@ -58,11 +75,12 @@ center_offset = canvas_size / 2.0
 MAX_SCALE = 100
 canvas_scale = 0.5 * MAX_SCALE
 
-canvas = tkinter.Canvas(top, width=canvas_size, height=canvas_size, bg="white")
+canvas = tkinter.Canvas(tmp_page, width=canvas_size, height=canvas_size, bg="white")
 canvas.place(x=325, y=10)
 
 def get_effective_width():
     return canvas_size / canvas_scale
+
 def get_grid_offset():
     effective_width = get_effective_width()
     half_effective_width = effective_width / 2.0
@@ -76,8 +94,9 @@ def get_grid_offset():
     grid_line_offset = upper_width / 4.0
     return grid_line_offset
 
+
 def draw_arm(position, length,
-                   absolute_radians, relative_radians):
+             absolute_radians, relative_radians):
     ARM_WIDTH = 3.0 / canvas_scale
     ARC_WIDTH = 7.0 * ARM_WIDTH
 
@@ -120,39 +139,30 @@ def draw_arm(position, length,
     canvas.create_polygon(points, fill="black")
 
 def update_canvas():
-    '''
-    Calculates angles for current lengths/point, calls draw_rectangle
-    for each length, and draws circles for appropriate origin and endpoint info
-    '''
+    #
+    #Calculates angles for current lengths/point, calls draw_rectangle
+    #for each length, and draws circles for appropriate origin and endpoint info
+    #
     global canvas
-    global L
-    global POINT
-
-    if not POINT:
-        return
-    if not L:
-        return
+    global arm_c
+    
     canvas.delete("all")
     
     offset = canvas_size / 2.0
-    LOW, UPP = n_joint_range(L)
     
     # Draw arm bounds
     BOUNDS_COLOR = "#555"
     BOUNDS_SIZE = 2.0
-    canvas.create_oval(-LOW + offset, -LOW + offset,
-                       LOW + offset, LOW + offset, 
+    canvas.create_oval(-arm_c.lower_bound + offset,
+                       -arm_c.lower_bound + offset,
+                       arm_c.lower_bound + offset,
+                       arm_c.lower_bound + offset, 
                        fill="", outline=BOUNDS_COLOR, width=BOUNDS_SIZE)
-    canvas.create_oval(-UPP + offset, -UPP + offset,
-                       UPP + offset, UPP + offset, 
+    canvas.create_oval(-arm_c.upper_bound + offset,
+                       -arm_c.upper_bound + offset,
+                       arm_c.upper_bound + offset,
+                       arm_c.upper_bound + offset, 
                        fill="", outline=BOUNDS_COLOR, width=BOUNDS_SIZE)
-    
-    # Scale POINT if it is outside the bounds
-    if not POINT.magnitude() == 0.0:
-        if POINT.magnitude() < LOW:
-            POINT = POINT.scale(LOW / (POINT.magnitude() * 0.999999999))
-        if POINT.magnitude() > UPP:
-            POINT = POINT.scale(UPP * 0.999999999 / POINT.magnitude())
 
     # Draw grid lines
     grid_line_offset = get_grid_offset()
@@ -194,41 +204,41 @@ def update_canvas():
         canvas.create_text(center_offset, line_position,
                            font=("Times", 10, "bold"), fill="black",
                            anchor="sw", text=displayed_line_value)
-            
-    A = n_jointed_arm_ik(L, W, POINT)
-    if not A == None:
-        position = Vector(0.0, 0.0)
-        for i in range(len(L)):
-            angle_display_boxes[i].widget.config(state="normal")
-            angle_display_boxes[i].widget.delete(0, tkinter.END)
-            angle = round(A[i] * 180 / 3.14159, 3)
-            angle_display_boxes[i].widget.insert(0, str(angle))
-            angle_display_boxes[i].widget.config(state="disabled")
-            absolute_angle = sum(A[:i+1])
-            draw_arm(position, L[i], absolute_angle, A[i])
-            position = position.add(Vector(L[i] * math.cos(absolute_angle),
-                                           L[i] * math.sin(absolute_angle)))
+    position = Vector(0.0, 0.0)
+    for i in range(len(arm_c.lengths)):
+        angle_display_boxes[i].widget.config(state="normal")
+        angle_display_boxes[i].widget.delete(0, tkinter.END)
+        angle = round(arm_c.angles[i] * 180 / 3.14159, 3)
+        angle_display_boxes[i].widget.insert(0, str(angle))
+        angle_display_boxes[i].widget.config(state="disabled")
+        absolute_angle = sum(arm_c.angles[:i+1])
+        draw_arm(position, arm_c.lengths[i], absolute_angle, arm_c.angles[i])
+        position = position.add(Vector(arm_c.lengths[i] *
+                                       math.cos(absolute_angle),
+                                       arm_c.lengths[i] *
+                                       math.sin(absolute_angle)))
         
-        # Draw circles that represent origin and endpoint
-        r = 4.0 / canvas_scale
-        canvas.create_oval(-r + offset, -r + offset, r + offset, r + offset, 
-                           fill="#11f", width=0.0)
-        canvas.create_oval(POINT.x-r + offset, POINT.y-r + offset,
-                           POINT.x+r + offset, POINT.y+r + offset,
-                           fill="#f11", width=0.0)
+    # Draw circles that represent origin and endpoint
+    r = 4.0 / canvas_scale
+    canvas.create_oval(-r + offset, -r + offset, r + offset, r + offset, 
+                       fill="#11f", width=0.0)
+    canvas.create_oval(arm_c.point.x-r + offset, arm_c.point.y-r + offset,
+                       arm_c.point.x+r + offset, arm_c.point.y+r + offset,
+                       fill="#f11", width=0.0)
     
     # Scale and translate canvas so arm appears at center
     canvas.scale("all", center_offset, center_offset,
                  canvas_scale, -1.0 * canvas_scale)
     
-point_data_boxes = [Input_Box("Point X: ", Vector(10, 270)),
-                  Input_Box("Point Y: ", Vector(10, 290))]
+    
+point_data_boxes = [Input_Box(tmp_page, "Point X: ", Vector(10, 270)),
+                  Input_Box(tmp_page, "Point Y: ", Vector(10, 290))]
 point_data_boxes[0].widget.insert(0, "0")
 point_data_boxes[1].widget.insert(0, "0")
 
 def set_point(x, y):
-    global POINT
-    POINT = Vector(x, y)
+    global arm_c
+    arm_c.update_point(Vector(x, y))
     
     update_canvas()
     
@@ -251,12 +261,11 @@ def set_point_from_mouse_event(event):
     y = y + 0.5 * (canvas_size / canvas_scale)
     
     set_point(x, y)
-
+'''
 
 def set_input_variables(lengths, point_x, point_y):
-    global L
-    global POINT
-    # Set lengths variable 'L'
+    global arm_c
+    '''
     L = []
     for i in range(len(lengths)):
         value = lengths[i]
@@ -272,7 +281,9 @@ def set_input_variables(lengths, point_x, point_y):
             print("Invalid length value \'0.0\' in field \'length_" + str(i) + "\'")
             return
         L.append(float(value))
-
+        
+    arm_c.update_lengths(L)
+    
     # Set point variable 'POINT'
     if len(point_x) == 0:
         print("Invalid empty field \'Point X\'")
@@ -289,7 +300,7 @@ def set_input_variables(lengths, point_x, point_y):
             print("Invalid characters in field \'Point Y\'")
             return
     set_point(float(point_x), float(point_y))
-
+'''
 def set_n(N_str):
     '''
     Sets global variable N to number in string parameter N_str, and
@@ -305,68 +316,62 @@ def set_n(N_str):
             print("Invalid characters in field \'N\'")
             return
     global length_input_boxes
-    global N
-    N = int(N_str)
-    if N == 0:
-        print("Enter a non-zero value for N")
-        return
+    global arm_c
+    arm_c.update_N(int(N_str))
     # Set length input boxes states to NORMAL
-    for i in range(N):
+    for i in range(arm_c.N):
         length_input_boxes[i].widget.config(state="normal")
-        if i < N-1:
-            length_input_boxes[i].widget.bind("<Return>", lambda event, i=i:length_input_boxes[i+1].widget.focus())
+        if i < arm_c.N-1:
+            length_input_boxes[i].widget.bind("<Return>",
+                                              lambda event, i=i:length_input_boxes[i+1].widget.focus())
         else:
-            length_input_boxes[i].widget.bind("<Return>", lambda event:point_data_boxes[0].widget.focus())
-    for i in range(N, len(length_input_boxes)):
+            length_input_boxes[i].widget.bind("<Return>",
+                                              lambda event:point_data_boxes[0].widget.focus())
+    for i in range(arm_c.N, len(length_input_boxes)):
         length_input_boxes[i].widget.delete(0, tkinter.END)
         length_input_boxes[i].widget.config(state="disabled")
         
     length_input_boxes[0].widget.focus()
 
 # Input box for number of joints
-n_input = Input_Box("N: ", Vector(10, 10))
+'''
+n_input = Input_Box(tmp_page, "N: ", Vector(10, 10))
 n_input.widget.bind("<Return>", lambda event : set_n(n_input.get()))
-set_n_button = tkinter.Button(top, text="Set N", command=lambda : set_n(n_input.get()))
+set_n_button = tkinter.Button(tmp_page, text="Set N", command=lambda : set_n(n_input.get()))
 set_n_button.place(x=120, y=7)
 n_input.widget.focus()
-
+'''
 def set_input_variables_w_boxes():
     '''
     Gathers data from entry fields and calls set_input_variables(...)
-    '''
+    
     lengths = []
-    if N == 0:
+    if arm_c.N == 0:
         print("Please enter an N and lengths")
         return
-    for i in range(N):
+    for i in range(arm_c.N):
         lengths.append(length_input_boxes[i].widget.get())
     point_x = point_data_boxes[0].widget.get()
     point_y = point_data_boxes[1].widget.get()
     set_input_variables(lengths, point_x, point_y)
-    
-set_vars_button = tkinter.Button(top, text="Set Arm Variables", command=set_input_variables_w_boxes)
+    '''
+'''    
+set_vars_button = tkinter.Button(tmp_page, text="Set Arm Variables", command=set_input_variables_w_boxes)
 set_vars_button.place(x=10, y=350)
 
 def update_weight_slider(event):
-    '''
-    Update global W when the slider has been adjusted
-    '''
-    global W
-    W = weight_slider.widget.get()
+    arm_c.update_weights([weight_slider.widget.get()] * arm_c.N)
     update_canvas()
     
-weight_slider = Input_Slider("Weight", Vector(10, 400), update_weight_slider)
+weight_slider = Input_Slider(tmp_page, "Weight", Vector(10, 400), update_weight_slider)
 weight_slider.widget.set(0.5)
 
 def update_scale_slider(event):
-    '''
-    Update canvas scale
-    '''
     global canvas_scale
     canvas_scale = scale_slider.get() * 0.99 * MAX_SCALE + (MAX_SCALE * 0.01)
     update_canvas()
     
-scale_slider = Input_Slider("Scale", Vector(10, 450), update_scale_slider)
+scale_slider = Input_Slider(tmp_page, "Scale", Vector(10, 450), update_scale_slider)
 scale_slider.widget.set(0.5)
 
 # Update point position on mouse click
@@ -375,6 +380,6 @@ canvas.bind("<Button-1>", set_point_from_mouse_event)
 canvas.bind("<B1-Motion>", set_point_from_mouse_event)
 point_data_boxes[0].widget.bind("<Return>", lambda event: point_data_boxes[1].widget.focus())
 point_data_boxes[1].widget.bind("<Return>", lambda event: set_input_variables_w_boxes())
+'''
 
-top.geometry("750x500+400+10")
 top.mainloop()
