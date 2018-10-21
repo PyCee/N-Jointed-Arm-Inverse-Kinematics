@@ -14,6 +14,8 @@ zip:
 	@cp page_frames.py N-Joint_Inverse_Kinematics/
 	@cp arm_controller.py N-Joint_Inverse_Kinematics/
 	@cp canvas.py N-Joint_Inverse_Kinematics/
+	@cp input_section.py N-Joint_Inverse_Kinematics/
+
 	@zip -r N-Joint_Inverse_Kinematics.zip \
 		N-Joint_Inverse_Kinematics/
 	@rm N-Joint_Inverse_Kinematics/*.py
