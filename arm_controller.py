@@ -13,9 +13,9 @@ class Arm_Controller:
         self.angles = []
         self.upper_bound = 0.0
         self.lower_bound = 0.0
-        self.angle_update = None
-    def set_angle_update(self, angle_update):
-        self.angle_update = angle_update
+        self.draw_update = None
+    def set_draw_update(self, draw_update):
+        self.draw_update = draw_update
         
     def update_N(self, new_N):
         self.N = new_N
@@ -25,6 +25,8 @@ class Arm_Controller:
         
         self.weights = self.weights[:min(len(self.weights), self.N)]
         self.weights += [1.0] * max(0, self.N - len(self.weights))
+
+        self.angles = [0.0] * self.N
         
     def update_lengths(self, new_lengths):
         '''
@@ -39,6 +41,8 @@ class Arm_Controller:
         self.lower_bound, self.upper_bound = n_joint_range(self.lengths)
         if self.has_set_point:
             self.update_point(self.point)
+        
+        self.draw_update(self.angles)
 
     def update_weights(self, new_weights):
         '''
@@ -61,9 +65,11 @@ class Arm_Controller:
         
         if not point_mag == 0.0:
             if point_mag < self.lower_bound:
-                point_scale = self.lower_bound / point_mag * 0.999
+                modified_lower = self.lower_bound * 1.000000000000001
+                point_scale = modified_lower / point_mag
             elif point_mag > self.upper_bound:
-                point_scale = self.upper_bound * 0.999 / point_mag
+                modified_upper = self.upper_bound * 0.999999999999999
+                point_scale = modified_upper / point_mag
         self.point = new_point.scale(point_scale)
         self.has_set_point = True
         self.update_angles()
@@ -75,4 +81,4 @@ class Arm_Controller:
         if self.has_set_point:
             self.angles = n_jointed_arm_ik(self.lengths,
                                            self.weights, self.point)
-            self.angle_update(self.angles)
+            self.draw_update(self.angles)

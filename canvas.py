@@ -6,7 +6,7 @@ from input_section import Input_Box, Input_Slider
 MAX_SCALE = 100
 
 class IK_Canvas(tkinter.Canvas):
-    def __init__(self, root, size, get_arm_controller):
+    def __init__(self, root, size, position, get_arm_controller):
         self.size = size
         self.center = self.size / 2.0
         self.scale_value = 0.5 * MAX_SCALE
@@ -16,8 +16,14 @@ class IK_Canvas(tkinter.Canvas):
 
         self.point = Vector(0, 0)
 
-        self.point_x_entry = Input_Box(root, "Point X", Vector(x=0, y=0))
-        self.point_y_entry = Input_Box(root, "Point Y", Vector(x=0, y=0))
+        self.point_x_entry = Input_Box(root, "Point X",
+                                       Vector(x=0, y=0))
+        self.point_y_entry = Input_Box(root, "Point Y",
+                                       Vector(x=0, y=0))
+        self.update_button =tkinter.Button(root,
+                                           text="Update Point",
+                                           command=lambda self=self:
+                                           self.get_input_box_point())
 
         self.update_point_display()
         
@@ -31,6 +37,31 @@ class IK_Canvas(tkinter.Canvas):
                   self.set_point_from_canvas_event(event))
         self.bind("<B1-Motion>", lambda event, self=self:
                   self.set_point_from_canvas_event(event))
+
+        self.place(x=position.x, y=position.y)
+        x_entry_position = Vector(position.x,
+                                  position.y + self.size + 10)
+        self.point_x_entry.set_position(x_entry_position)
+
+        y_entry_position = x_entry_position.add(Vector(140, 0))
+        self.point_y_entry.set_position(y_entry_position)
+
+        button_position = y_entry_position.add(Vector(140, 0))
+        self.update_button.place(x=button_position.x,
+                                 y=button_position.y)
+
+        scale_slider_position = Vector(position.x,
+                                       position.y + self.size + 40)
+        self.scale_slider.set_position(scale_slider_position)
+
+        self.show_grid = tkinter.IntVar()
+        self.show_grid.set(1)
+        self.show_arm_bounds = tkinter.IntVar()
+        self.show_arm_bounds.set(1)
+        self.show_angle_text = tkinter.IntVar()
+        self.show_angle_text.set(0)
+        self.show_angle_arc = tkinter.IntVar()
+        self.show_angle_arc.set(0)
 
         self.get_arm_controller = get_arm_controller
 
@@ -49,7 +80,7 @@ class IK_Canvas(tkinter.Canvas):
         self.update_point_display()
         
         self.get_arm_controller().update_point(self.point)
-    
+        
     def update_point_display(self):
         '''
         Set strings in entry widgets to display current point
@@ -72,24 +103,15 @@ class IK_Canvas(tkinter.Canvas):
             new_point.y = float(self.point_y_entry.widget.get())
         except ValueError:
             print("Invalid Point Y Input")
-            
-        self.get_arm_controller().update_point(self.point)
 
-        self.update_point_display(self.point)
+        self.point = new_point
+        
+        self.get_arm_controller().update_point(self.point)
+        self.update_point_display()
 
     def update_scale(self, event):
         self.scale_value = self.scale_slider.get() * 0.99 * MAX_SCALE + (MAX_SCALE * 0.01)
         self.update()
-        
-    def set_position(self, position):
-        self.place(x=position.x, y=position.y)
-        self.point_x_entry.widget.place(x=position.x,
-                                        y=position.y + self.size + 10)
-        self.point_y_entry.widget.place(x=position.x + 80,
-                                        y=position.y + self.size + 10)
-        self.scale_slider.widget.place(x=position.x,
-                                       y=position.y + self.size + 30)
-        
         
     def get_effective_size(self):
         return self.size / self.scale_value
@@ -124,24 +146,33 @@ class IK_Canvas(tkinter.Canvas):
         start_point = position.add(Vector(center_offset, center_offset))
         end_point = start_point.add(offset)
         
-        # Draw arc to show angle
         absolute_angle = absolute_radians * 180.0 / 3.14159
         relative_angle = relative_radians * 180.0 / 3.14159
-        self.create_arc(start_point.x - ARC_WIDTH, start_point.y - ARC_WIDTH,
-                          start_point.x + ARC_WIDTH, start_point.y + ARC_WIDTH,
-                          start=absolute_angle, extent=-1.0 * relative_angle,
-                          fill="#bbbbbb")
-        
-        # Draw text to show angle
-        
-        angle_text_distance = 0.5
+
+        if self.show_angle_arc.get():
+            # Draw arc to show angle
+            
+            self.create_arc(start_point.x - ARC_WIDTH,
+                            start_point.y - ARC_WIDTH,
+                            start_point.x + ARC_WIDTH,
+                            start_point.y + ARC_WIDTH,
+                            start=absolute_angle,
+                            extent=-1.0 * relative_angle,
+                            fill="#bbbbbb")
+
+            
+        text_distance = 0.5
         text_radians = absolute_radians - relative_radians / 2.0
         text_base = Vector(math.cos(text_radians),
-                           math.sin(text_radians)).scale(angle_text_distance)
+                           math.sin(text_radians)).scale(text_distance)
         text_base = text_base.add(start_point)
-        self.create_text(text_base.x, text_base.y,
-                           font=("Times", 10, "bold"), fill="black",
-                           anchor="s", text=str(round(relative_angle, 2)))
+        
+        if self.show_angle_text.get():
+            # Draw text to show angle
+            
+            self.create_text(text_base.x, text_base.y,
+                             font=("Times", 10, "bold"), fill="black",
+                             anchor="s", text=str(round(relative_angle, 2)))
         
         # Draw rectangle to represent arm
         points = [
@@ -215,37 +246,45 @@ class IK_Canvas(tkinter.Canvas):
 
     def update(self):
         self.delete("all")
-        arm_controller = self.get_arm_controller()
-        
+
         offset = self.size / 2.0
+        if self.show_grid.get():
+            self.draw_grid_lines(offset)
 
-        self.draw_arm_bounds(arm_controller.lower_bound,
-                             arm_controller.upper_bound,
-                             offset)
-        self.draw_grid_lines(offset)
-
-        # Draw arms
-        position = Vector(0.0, 0.0)
-        for i in range(len(arm_controller.lengths)):
-            angle = round(arm_controller.angles[i] * 180 / 3.14159, 3)
-            absolute_angle = sum(arm_controller.angles[:i+1])
-            self.draw_arm(position, arm_controller.lengths[i],
-                          absolute_angle, arm_controller.angles[i], offset)
-            position = position.add(Vector(arm_controller.lengths[i] *
+        arm_controller = self.get_arm_controller()
+        if len(arm_controller.lengths) != 0:
+            
+            if self.show_arm_bounds.get():
+                self.draw_arm_bounds(arm_controller.lower_bound,
+                                     arm_controller.upper_bound,
+                                     offset)
+        
+            if len(arm_controller.weights) != 0:
+                
+                # Draw arms
+                position = Vector(0.0, 0.0)
+                for i in range(len(arm_controller.lengths)):
+                    angle = round(arm_controller.angles[i] * 180 / 3.14159, 3)
+                    absolute_angle = sum(arm_controller.angles[:i+1])
+                    self.draw_arm(position, arm_controller.lengths[i],
+                                  absolute_angle, arm_controller.angles[i],
+                                  offset)
+                    position = position.add(Vector(arm_controller.lengths[i] *
                                            math.cos(absolute_angle),
                                            arm_controller.lengths[i] *
                                            math.sin(absolute_angle)))
             
-        # Draw circles that represent origin and endpoint
-        r = 4.0 / self.scale_value
-        self.create_oval(-r + offset, -r + offset, r + offset, r + offset, 
-                           fill="#11f", width=0.0)
-        self.create_oval(arm_controller.point.x-r + offset,
-                         arm_controller.point.y-r + offset,
-                         arm_controller.point.x+r + offset,
-                         arm_controller.point.y+r + offset,
-                         fill="#f11", width=0.0)
+                    # Draw circles that represent origin and endpoint
+                    r = 4.0 / self.scale_value
+                    self.create_oval(-r + offset, -r + offset,
+                                     r + offset, r + offset, 
+                                     fill="#11f", width=0.0)
+                    self.create_oval(arm_controller.point.x-r + offset,
+                                     arm_controller.point.y-r + offset,
+                                     arm_controller.point.x+r + offset,
+                                     arm_controller.point.y+r + offset,
+                                     fill="#f11", width=0.0)
         
-        # Scale and translate canvas so arm appears at center
+        # Scale and translate canvas so arm base appears at center
         self.scale("all", offset, offset,
                    self.scale_value, -1.0 * self.scale_value)

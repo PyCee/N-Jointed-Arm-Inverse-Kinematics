@@ -1,7 +1,7 @@
 import math
 from n_jointed_arm_ik import Vector
 from arm_controller import Arm_Controller
-from page_frames import N_Frame, Length_Frame, Weight_Frame, Angle_Frame
+from page_frames import N_Frame, Length_Frame, Weight_Frame, Angle_Frame, Display_Frame
 from canvas import IK_Canvas
 
 from input_section import Input_Box, Input_Slider
@@ -17,7 +17,7 @@ top.title(TITLE)
 top.geometry(str(WIDTH)+"x"+str(HEIGHT)+"+400+10")
 
 pages = ttk.Notebook(top)
-pages.place(x=0, y=10)
+pages.place(x=0, y=0)
     
 arm_c = Arm_Controller()
 def get_arm_controller():
@@ -29,29 +29,31 @@ def Update_N_Event(N):
     weights_page.set_N(N)
 
 def update_arm_lengths(length_array):
-    print("updating lengths " + str(length_array))
     get_arm_controller().update_lengths(length_array)
     
 def update_arm_weights(weight_array):
-    print("updating weights " + str(weight_array))
     get_arm_controller().update_weights(weight_array)
     
 N_page = N_Frame(top, Update_N_Event)
 lengths_page = Length_Frame(top, update_arm_lengths)
 weights_page = Weight_Frame(top, update_arm_weights)
 angles_page = Angle_Frame(top)
+display_page = Display_Frame(top)
 
 pages.add(N_page, text="N")
-pages.add(lengths_page, text="Lengths")
+pages.add(lengths_page, text="Lengths ")
 pages.add(weights_page, text="Weights")
 pages.add(angles_page, text="Angles")
+pages.add(display_page, text="Display")
 
-canvas = IK_Canvas(top, 400, get_arm_controller)
-canvas.set_position(Vector(325, 10))
+canvas = IK_Canvas(top, 400, Vector(325, 10), get_arm_controller)
+
+display_page.bind_canvas(canvas)
 
 def update_angles(angle_array):
     angles_page.set_elements(angle_array)
     canvas.update()
-arm_c.set_angle_update(update_angles)
+arm_c.set_draw_update(update_angles)
+
 
 top.mainloop()
