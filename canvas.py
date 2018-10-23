@@ -112,6 +112,12 @@ class IK_Canvas(tkinter.Canvas):
     def update_scale(self, event):
         self.scale_value = self.scale_slider.get() * 0.99 * MAX_SCALE + (MAX_SCALE * 0.01)
         self.update()
+
+    def scale_to_fit_arm(self):
+        fit = self.get_arm_controller().upper_bound * 2 * 1.2
+        if fit != 0.0:
+            self.scale_value = self.size / fit
+            self.update()
         
     def get_effective_size(self):
         return self.size / self.scale_value

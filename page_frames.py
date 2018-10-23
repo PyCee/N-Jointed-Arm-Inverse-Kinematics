@@ -151,7 +151,7 @@ class Weight_Frame(tkinter.Frame):
         
         self.variable_label_frame = tkinter.LabelFrame(self)
         self.variable_label_frame.place(x=FRAME_CONTENTS_BASE.x,
-                                        y=FRAME_CONTENTS_BASE.y + 220)
+                                        y=FRAME_CONTENTS_BASE.y + 180)
         self.variable_label_text = tkinter.Label(self.variable_label_frame,
                                                  wraplength=240)
         self.variable_label_text.pack()
@@ -159,13 +159,23 @@ class Weight_Frame(tkinter.Frame):
         
         self.label_frame = tkinter.LabelFrame(self, text="Weights",
                                               padx=10, pady=10)
-        self.label_frame.place(x=20, y=300)
+        self.label_frame.place(x=20, y=220)
 
-        self.description="Weight will determine if angles are biased towards the base of point of the arm. A weight of 1.0 will weigh fully towards the base. Because of the way angles are calculated, there are N - 2 allowed weights"
+        self.description="A weight will determine how angles are biased. A weight of 1.0 will weigh the joint away from the point. A weight of 0.0 will weigh the joint nearer to the point. Weights must be in (0.0, 1.0)."
         self.label_text = tkinter.Label(self.label_frame,
                                         text=self.description,
-                                        wraplength=200)
+                                        wraplength=250)
         self.label_text.pack()
+
+        self.label_frame_2 = tkinter.LabelFrame(self,
+                                              padx=10, pady=10)
+        self.label_frame_2.place(x=20, y=340)
+
+        self.description_2 = "A 2 jointed arm can have no weighting (as there are only 2 solutions), so we do not have weights for the last 2 joints, leaving us with N - 2 weights for any N."
+        self.label_text_2 = tkinter.Label(self.label_frame_2,
+                                        text=self.description_2,
+                                        wraplength=250)
+        self.label_text_2.pack()
     
     def update_arm(self, update_function):
         weights_array = []
@@ -247,6 +257,9 @@ class Display_Frame(tkinter.Frame):
         self.show_angle_arc.place(x=FRAME_CONTENTS_BASE.x,
                                    y=FRAME_CONTENTS_BASE.y + 60)
         
+        self.fit_arm_button = tkinter.Button(self, text="Fit Arm")
+        self.fit_arm_button.place(x=20, y=120)
+        
         self.label_frame = tkinter.LabelFrame(self,
                                               padx=10, pady=10)
         self.label_frame.place(x=20, y=160)
@@ -256,6 +269,7 @@ class Display_Frame(tkinter.Frame):
                                         text=self.description,
                                         wraplength=200)
         self.label_text.pack()
+
     def bind_canvas(self, canvas):
         self.show_grid.config(variable=canvas.show_grid,
                               command=canvas.update)
@@ -265,3 +279,4 @@ class Display_Frame(tkinter.Frame):
                                     command=canvas.update)
         self.show_angle_arc.config(variable=canvas.show_angle_arc,
                                    command=canvas.update)
+        self.fit_arm_button.config(command=canvas.scale_to_fit_arm)
