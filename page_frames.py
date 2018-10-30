@@ -242,23 +242,23 @@ class Display_Frame(tkinter.Frame):
         super().__init__(root, width=1000, height=1000)
         self.show_grid = tkinter.Checkbutton(self,
                                              text="Show Grid")
+        self.show_grid_numbers = tkinter.Checkbutton(self,
+                                             text="Show Grid Numbers")
         self.show_arm_bounds = tkinter.Checkbutton(self,
                                                    text="Show Arm Bounds")
         self.show_angle_text = tkinter.Checkbutton(self,
                                                    text="Show Angle Text")
         self.show_angle_arc = tkinter.Checkbutton(self,
                                                   text="Show Angle Arc")
-        self.show_grid.place(x=FRAME_CONTENTS_BASE.x,
-                             y=FRAME_CONTENTS_BASE.y)
-        self.show_arm_bounds.place(x=FRAME_CONTENTS_BASE.x,
-                                   y=FRAME_CONTENTS_BASE.y + 20)
-        self.show_angle_text.place(x=FRAME_CONTENTS_BASE.x,
-                                   y=FRAME_CONTENTS_BASE.y + 40)
-        self.show_angle_arc.place(x=FRAME_CONTENTS_BASE.x,
-                                   y=FRAME_CONTENTS_BASE.y + 60)
-        
         self.fit_arm_button = tkinter.Button(self, text="Fit Arm")
-        self.fit_arm_button.place(x=20, y=120)
+
+        elements = [self.show_grid, self.show_grid_numbers,
+                      self.show_arm_bounds, self.show_angle_text,
+                      self.show_angle_arc, self.fit_arm_button]
+        for i in range(len(elements)):
+            elements[i].place(x=FRAME_CONTENTS_BASE.x,
+                              y=FRAME_CONTENTS_BASE.y + (20 * i))
+        
         
         self.label_frame = tkinter.LabelFrame(self,
                                               padx=10, pady=10)
@@ -272,6 +272,8 @@ class Display_Frame(tkinter.Frame):
 
     def bind_canvas(self, canvas):
         self.show_grid.config(variable=canvas.show_grid,
+                              command=canvas.update)
+        self.show_grid_numbers.config(variable=canvas.show_grid_numbers,
                               command=canvas.update)
         self.show_arm_bounds.config(variable=canvas.show_arm_bounds,
                                     command=canvas.update)

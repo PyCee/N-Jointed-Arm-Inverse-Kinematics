@@ -56,6 +56,8 @@ class IK_Canvas(tkinter.Canvas):
 
         self.show_grid = tkinter.IntVar()
         self.show_grid.set(1)
+        self.show_grid_numbers = tkinter.IntVar()
+        self.show_grid_numbers.set(1)
         self.show_arm_bounds = tkinter.IntVar()
         self.show_arm_bounds.set(1)
         self.show_angle_text = tkinter.IntVar()
@@ -117,6 +119,8 @@ class IK_Canvas(tkinter.Canvas):
         fit = self.get_arm_controller().upper_bound * 2 * 1.2
         if fit != 0.0:
             self.scale_value = self.size / fit
+            self.scale_slider.widget.set(self.scale_value / 
+                                         MAX_SCALE)
             self.update()
         
     def get_effective_size(self):
@@ -234,21 +238,24 @@ class IK_Canvas(tkinter.Canvas):
 
             line_position = offset + lower_line_value
             displayed_line_value = str(line_value).rstrip('0').rstrip('.')
-            if i != 0:
-                # If this is the center line, don't draw the line value
-                #   (it looksbad if draw alongside the value for the
-                #   horizontal center line)
-                
-                # Display vertical line values
-                self.create_text(line_position, offset,
-                                   font=("Times", 10, "bold"),
-                                   fill="black", anchor="se",
-                                   text=displayed_line_value)
-            
-            # Display horizontal line values
-            self.create_text(offset, line_position,
-                               font=("Times", 10, "bold"), fill="black",
-                               anchor="sw", text=displayed_line_value)
+            if self.show_grid_numbers.get():
+                if i != 0:
+                    # If this is the center line, don't draw the line value
+                    #   (it looksbad if draw alongside the value for the
+                    #   horizontal center line)
+                    
+                    # Display vertical line values
+                    self.create_text(line_position, offset,
+                                     font=("Times", 10, "bold"),
+                                     fill="black", anchor="se",
+                                     text=displayed_line_value)
+                    
+                # Display horizontal line values
+                self.create_text(offset, line_position,
+                                 font=("Times", 10, "bold"), 
+                                 fill="black",
+                                 anchor="sw", 
+                                 text=displayed_line_value)
 
     def update(self):
         self.delete("all")
