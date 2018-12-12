@@ -8,7 +8,8 @@ class Vector:
         self.x = x
         self.y = y
     def __repr__(self):
-        return "(" + str(round(self.x, 3)) + ", " + str(round(self.y, 3)) + ")"
+        return "(" + str(round(self.x, 3)) + ", " + \
+            str(round(self.y, 3)) + ")"
     def scale(self, scalar):
         return Vector(self.x * scalar, self.y * scalar)
     def add(self, vec):
@@ -35,12 +36,14 @@ def two_joint_validity(length_1, length_2, point):
 
     The valid range is length_2 away from length_1
     '''
-
-    # To help correct error
-    length_2 *= 1.00000000001
-    
     r_1, r_2 = two_joint_range(length_1, length_2)
+    
+    # To help correct error
+    r_1 *= 0.99999
+    r_2 *= 1.00001
+    
     distance = point.magnitude()
+    
     return r_1 <= distance and distance <= r_2
     
 def n_joint_range(L):
@@ -97,8 +100,9 @@ def two_jointed_arm_ik(length_1, length_2, point):
     the angles for each joint.
     '''
     #TODO: below
-    '''if not two_joint_validity(length_1, length_2, point):
-        raise OutOfRange'''
+    if not two_joint_validity(length_1, length_2, point):
+        raise OutOfRange
+    #
     distance = point.magnitude()
     x_neg = point.x < 0.0
     relative_angle = 0.0
