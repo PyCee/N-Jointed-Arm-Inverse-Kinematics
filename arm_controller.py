@@ -14,9 +14,10 @@ class Arm_Controller:
         self.upper_bound = 0.0
         self.lower_bound = 0.0
         self.draw_update = None
+    def get_bounds(self):
+        return n_joint_range(self.lengths)
     def set_draw_update(self, draw_update):
         self.draw_update = draw_update
-        
     def update_N(self, new_N):
         self.N = new_N
             

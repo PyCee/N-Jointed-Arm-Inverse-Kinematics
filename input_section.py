@@ -1,4 +1,5 @@
 import tkinter
+from n_jointed_arm_ik import Vector
 
 MAX_INPUT = 10
 
@@ -17,7 +18,7 @@ class Input_Section:
     def get(self):
         return self.widget.get()
 class Input_Box (Input_Section):
-    def __init__(self, parent, title, position):
+    def __init__(self, parent, title, position=Vector(0.0, 0.0)):
         widget = tkinter.Entry(parent, width=10, justify="center")
         super().__init__(parent, title, position, widget)
 class Input_Slider (Input_Section):
