@@ -10,28 +10,28 @@ class Pathing_Frame_Alter(tkinter.Toplevel):
         self.item = item
         super().__init__(frame)
         self.wm_title("Alter Row")
-        self.geometry("320x110+0+0")
+        self.geometry("320x120+0+0")
         
-        t_label = tkinter.Label(self, text="T")
-        t_label.place(x=57, y=10)
-        x_label = tkinter.Label(self, text="X")
-        x_label.place(x=157, y=10)
-        y_label = tkinter.Label(self, text="Y")
-        y_label.place(x=257, y=10)
+        t_label = tkinter.Label(self, text="t-range")
+        t_label.place(x=20, y=10)
+        x_label = tkinter.Label(self, text="x function")
+        x_label.place(x=20, y=34)
+        y_label = tkinter.Label(self, text="y function")
+        y_label.place(x=20, y=58)
 
-        self.t_entry = tkinter.Entry(self, width=10, justify="center")
+        self.t_entry = tkinter.Entry(self, width=24, justify="center")
         self.t_entry.insert(0, old_t)
-        self.t_entry.place(x=20, y=30)
-        self.x_entry = tkinter.Entry(self, width=10, justify="center")
+        self.t_entry.place(x=100, y=10)
+        self.x_entry = tkinter.Entry(self, width=24, justify="center")
         self.x_entry.insert(0, old_x)
-        self.x_entry.place(x=120, y=30)
-        self.y_entry = tkinter.Entry(self, width=10, justify="center")
+        self.x_entry.place(x=100, y=34)
+        self.y_entry = tkinter.Entry(self, width=24, justify="center")
         self.y_entry.insert(0, old_y)
-        self.y_entry.place(x=220, y=30)
+        self.y_entry.place(x=100, y=58)
         
         set_row_button = tkinter.Button(self, text="Update Row",
                                         command=self.set_row)
-        set_row_button.place(x=100, y=70)
+        set_row_button.place(x=100, y=82)
         
     def set_row(self):
         values = (str(self.t_entry.get()),
@@ -39,7 +39,7 @@ class Pathing_Frame_Alter(tkinter.Toplevel):
                   str(self.y_entry.get()))
         self.page_frame.set_tree_row(self.item, values)
         self.destroy()
-        
+
 class Pathing_Frame(tkinter.Frame):
     def __init__(self, root, update_point_event):
         super().__init__(root, width=1000, height=1000)
@@ -52,10 +52,10 @@ class Pathing_Frame(tkinter.Frame):
         self.tree = ttk.Treeview(self, columns=("T", "X", "Y"),
                                  show="headings", height=0)
         self.tree.bind("<Double-1>", self.on_row_select)
-        self.tree.place(x=10, y=10)
-        self.tree.column("T", width=120, anchor='e')
-        self.tree.column("X", width=120, anchor='e')
-        self.tree.column("Y", width=120, anchor='e')
+        self.tree.place(x=5, y=5)
+        self.tree.column("T", width=180, anchor='c')
+        self.tree.column("X", width=180, anchor='c')
+        self.tree.column("Y", width=180, anchor='c')
         self.tree.heading("T", text="T")
         self.tree.heading("X", text="X")
         self.tree.heading("Y", text="Y")

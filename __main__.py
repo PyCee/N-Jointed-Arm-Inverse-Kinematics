@@ -13,7 +13,7 @@ import tkinter
 from tkinter import ttk
 
 TITLE = "N-Joint Inverse Kinematics"
-WIDTH = 800
+WIDTH = 970
 HEIGHT = 500
 
 top = tkinter.Tk()
@@ -21,6 +21,7 @@ top.title(TITLE)
 top.geometry(str(WIDTH)+"x"+str(HEIGHT)+"+400+10")
 
 pages = ttk.Notebook(top)
+pages.config(width=550)
 pages.place(x=0, y=0)
     
 arm_c = Arm_Controller()
@@ -55,7 +56,7 @@ pages.add(angles_page, text="Angles")
 pages.add(display_page, text="Display")
 pages.add(pathing_page, text="Pathing")
 
-canvas = IK_Canvas(top, 400, Vector(380, 10), get_arm_controller)
+canvas = IK_Canvas(top, 400, Vector(560, 10), get_arm_controller)
 
 display_page.bind_canvas(canvas)
 
