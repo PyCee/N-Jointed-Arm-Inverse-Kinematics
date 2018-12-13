@@ -13,7 +13,7 @@ class Path_Instant:
         
 class Path_Controller:
     def __init__(self):
-        self.arm_controller = None
+        self.update_point_event = None
         self.instants = []
         self.point = Vector(0.0, 0.0)
         self.time = 0.0
@@ -21,8 +21,8 @@ class Path_Controller:
         return self.point
     def get_time(self):
         return self.time
-    def set_arm_controller(self, arm_c):
-        self.arm_controller = arm_c
+    def set_update_point_event(self, e):
+        self.update_point_event = e
     def in_progress(self):
         return self.time > 0.0
     def add_instant(self, instant):
@@ -55,8 +55,8 @@ class Path_Controller:
                 scaled_point_range = point_range.scale(time_progress)
                 self.point = base_point.add(scaled_point_range)
                 break
-        if self.arm_controller != None:
-            self.arm_controller.update_point(self.point)
+        if self.update_point_event != None:
+            self.update_point_event(self.point)
     def reset(self):
         self.time = 0.0
     def __repr__(self):
