@@ -21,7 +21,7 @@ class Length_Frame(tkinter.Frame):
         self.update_button = tkinter.Button(self,
                                             text="Update Lengths",
                                             command=lambda self=self:
-                                            self.up_date_arm(update_arm_lengths))
+                                            self.update_arm(update_arm_lengths))
         self.update_button.place(x=175, y=10)
         
         self.variable_label_frame = tkinter.LabelFrame(self)
