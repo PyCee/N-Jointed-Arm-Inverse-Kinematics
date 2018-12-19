@@ -40,8 +40,6 @@ class Arm_Controller:
         
         self.lengths = new_lengths
         self.lower_bound, self.upper_bound = n_joint_range(self.lengths)
-        if self.has_set_point:
-            self.update_point(self.point)
         
         self.draw_update(self.angles)
 
@@ -49,11 +47,13 @@ class Arm_Controller:
         '''
         Set self.weights and update angles with new weights
         '''
-        if len(new_weights) != self.N:
+        if len(new_weights) != self.N - 2:
             raise InvalidArmControllerParameters
         
         self.weights = new_weights
-        self.update_angles()
+
+    def refresh_results(self):
+        self.update_point(self.point)
         
     def update_point(self, new_point):
         '''

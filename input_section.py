@@ -1,7 +1,6 @@
 import tkinter
 from n_jointed_arm_ik import Vector
 
-MAX_INPUT = 10
 
 class Input_Section:
     def __init__(self, parent, title, position, widget):

@@ -36,3 +36,5 @@ Run the following in a debian-based terminal:
 * Set arm lengths
 * Click button to set arm Variables
 * Type in point coords and update arm variables, or click in white box to drag endpoint
+
+Lengths determine how far each joint is from the last, and determines the overall reach of the arm. Length 0 is the arm closest to the base

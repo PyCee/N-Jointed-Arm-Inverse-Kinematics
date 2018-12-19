@@ -3,6 +3,8 @@ import sys
 
 class OutOfRange(Exception):
     pass
+class LengthsWeightsNotMatch(Exception):
+    pass
 class Vector:
     def __init__(self, x, y):
         self.x = x
@@ -99,10 +101,8 @@ def two_jointed_arm_ik(length_1, length_2, point):
     of the circles. It finds the intersection point, and calculates
     the angles for each joint.
     '''
-    #TODO: below
     if not two_joint_validity(length_1, length_2, point):
         raise OutOfRange
-    #
     distance = point.magnitude()
     x_neg = point.x < 0.0
     relative_angle = 0.0
@@ -138,8 +138,10 @@ def two_jointed_arm_ik(length_1, length_2, point):
 def n_jointed_arm_ik(lengths, weights, point):
     if not n_joint_validity(lengths, point):
         raise OutOfRange
-    if len(lengths) != len(weights):
-        print("lengths of lengths != length of weights")
+    if len(lengths)-2 != len(weights):
+        print("lengths: " + str(lengths))
+        print("weights: " + str(weights))
+        raise LengthsWeightsNotMatch
     
     resulting_angles = [0] * len(lengths)
     for index in range(len(lengths)-1):
