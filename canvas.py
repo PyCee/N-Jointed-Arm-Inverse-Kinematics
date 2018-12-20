@@ -81,7 +81,7 @@ class IK_Canvas(tkinter.Canvas):
         
         self.update_point_display()
         
-        self.get_arm_controller().update_point(self.point)
+        self.get_arm_controller().set_point(self.point)
         
     def update_point_display(self):
         '''
@@ -108,7 +108,7 @@ class IK_Canvas(tkinter.Canvas):
 
         self.point = new_point
         
-        self.get_arm_controller().update_point(self.point)
+        self.get_arm_controller().set_point(self.point)
         self.update_point_display()
 
     def update_scale(self, event):
@@ -271,32 +271,31 @@ class IK_Canvas(tkinter.Canvas):
                 self.draw_arm_bounds(arm_controller.lower_bound,
                                      arm_controller.upper_bound,
                                      offset)
-        
-            if len(arm_controller.weights) != 0:
                 
-                # Draw arms
-                position = Vector(0.0, 0.0)
-                for i in range(len(arm_controller.lengths)):
-                    angle = round(arm_controller.angles[i] * 180 / 3.14159, 3)
-                    absolute_angle = sum(arm_controller.angles[:i+1])
-                    self.draw_arm(position, arm_controller.lengths[i],
-                                  absolute_angle, arm_controller.angles[i],
-                                  offset)
-                    position = position.add(Vector(arm_controller.lengths[i] *
-                                           math.cos(absolute_angle),
-                                           arm_controller.lengths[i] *
-                                           math.sin(absolute_angle)))
+            # Draw arms
+            position = Vector(0.0, 0.0)
+            for i in range(len(arm_controller.lengths)):
+                radian = arm_controller.angles[i]
+                angle = round(radian * 180 / 3.14159, 3)
+                absolute_angle = sum(arm_controller.angles[:i+1])
+                self.draw_arm(position, arm_controller.lengths[i],
+                              absolute_angle, radian,
+                              offset)
+                position = position.add(Vector(arm_controller.lengths[i] *
+                                               math.cos(absolute_angle),
+                                               arm_controller.lengths[i] *
+                                               math.sin(absolute_angle)))
             
-                    # Draw circles that represent origin and endpoint
-                    r = 4.0 / self.scale_value
-                    self.create_oval(-r + offset, -r + offset,
-                                     r + offset, r + offset, 
-                                     fill="#11f", width=0.0)
-                    self.create_oval(arm_controller.point.x-r + offset,
-                                     arm_controller.point.y-r + offset,
-                                     arm_controller.point.x+r + offset,
-                                     arm_controller.point.y+r + offset,
-                                     fill="#f11", width=0.0)
+                # Draw circles that represent origin and endpoint
+                r = 4.0 / self.scale_value
+                self.create_oval(-r + offset, -r + offset,
+                                 r + offset, r + offset, 
+                                 fill="#11f", width=0.0)
+                self.create_oval(arm_controller.point.x-r + offset,
+                                 arm_controller.point.y-r + offset,
+                                 arm_controller.point.x+r + offset,
+                                 arm_controller.point.y+r + offset,
+                                 fill="#f11", width=0.0)
         
         # Scale and translate canvas so arm base appears at center
         self.scale("all", offset, offset,

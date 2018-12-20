@@ -68,14 +68,6 @@ class Pathing_Frame(tkinter.Frame):
         self.add_row_b = tkinter.Button(self, text="Add New Row")
         self.add_row_b.config(command=self.on_row_append)
         self.add_row_b.place(x=20, y=270)
-
-        self.label_frame = tkinter.LabelFrame(self, padx=10, pady=10)
-        self.label_frame.place(x=20, y=300)
-        self.description="Create paths for the point to follow. ANIMATION!"
-        self.label_text = tkinter.Label(self.label_frame,
-                                        text=self.description,
-                                        wraplength=200)
-        self.label_text.pack()
         
     def on_row_select(self, e):
         item = self.tree.selection()[0]

@@ -29,15 +29,17 @@ def update_arm_lengths():
     N = lengths_page.get_N()
     length_array = lengths_page.get_lengths()
     weight_array = lengths_page.get_weights()
-    #print("N: " + str(N) + " Lengths: " + str(length_array) + " Weights: " + str(weight_array))
-    get_arm_controller().update_N(N)
-    get_arm_controller().update_lengths(length_array)
-    get_arm_controller().update_weights(weight_array)
+    #print("N: " + str(N))
+    #print("Lengths: " + str(length_array))
+    #print("Weights: " + str(weight_array))
+    get_arm_controller().set_N(N)
+    get_arm_controller().set_lengths(length_array)
+    get_arm_controller().set_weights(weight_array)
 
     get_arm_controller().refresh_results()
     
 def update_arm_point(point):
-    get_arm_controller().update_point(point)
+    get_arm_controller().set_point(point)
 
 lengths_page = Length_Frame(top)
 display_page = Display_Frame(top)
@@ -58,6 +60,6 @@ def update_angles(angle_array):
     display_page.set_elements(angle_array)
     canvas.update()
     
-arm_c.set_draw_update(update_angles)
+arm_c.set_update_event(update_angles)
 
 top.mainloop()

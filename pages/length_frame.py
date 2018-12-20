@@ -11,15 +11,16 @@ class Length_Frame(tkinter.Frame):
         super().__init__(root, width=1000, height=1000)
 
         self.update_lengths_callback = lambda : None
-        self.input_labels = []
+        self.length_labels = []
         self.length_boxes = []
         self.remove_buttons = []
 
+        self.weight_labels = []
         self.weight_boxes = []
         
         append_button = tkinter.Button(self, text="Add New Length",
                                        command=self.append_length)
-        append_button.place(x=10, y=260)
+        append_button.place(x=10, y=10)
 
         self.length_vcmd = (self.register(self.validate_length),
                 '%d', '%i', '%P', '%s', '%S', '%v', '%V', '%W')
@@ -34,14 +35,14 @@ class Length_Frame(tkinter.Frame):
         index = self.get_N()
         y_val = 10 + index * 20
         
-        label = tkinter.Label(self,
+        l_label = tkinter.Label(self,
                               text="Length "+str(index+1)+":")
-        label.place(x=20, y=y_val)
+        l_label.place(x=160, y=y_val)
         
         l_box = tkinter.Entry(self, width=10, justify="center",
                             validate='key',
                             validatecommand=self.length_vcmd)
-        l_box.place(x=100, y=y_val)
+        l_box.place(x=240, y=y_val)
         l_box.insert(0, str(DEFAULT_LENGTH))
         l_box.bind("<FocusOut>", self.update_lengths)
         l_box.bind("<Return>", self.update_lengths)
@@ -50,22 +51,26 @@ class Length_Frame(tkinter.Frame):
         remove_button = tkinter.Button(self, fg="#ff0000",
                                        text="X", padx=0, pady=0,
                                        command=remove_event)
-        remove_button.place(x=190, y=y_val)
+        remove_button.place(x=330, y=y_val)
         
-        self.input_labels.append(label)
+        self.length_labels.append(l_label)
         self.length_boxes.append(l_box)
         self.remove_buttons.append(remove_button)
 
         if index >= 2:
+            weight_y_val = 10 + (index-2) * 20
+            w_label = tkinter.Label(self,
+                                    text="Weight "+str(index-1)+":")
+            w_label.place(x=380, y=weight_y_val)
             w_box = tkinter.Entry(self, width=10,
                                   justify="center",
                                   validate='key',
                                   validatecommand=self.weight_vcmd)
-            weight_y_val = 10 + (index-2) * 20
-            w_box.place(x=300, y=weight_y_val)
+            w_box.place(x=460, y=weight_y_val)
             w_box.insert(0, str(DEFAULT_WEIGHT))
             w_box.bind("<FocusOut>", self.update_lengths)
             w_box.bind("<Return>", self.update_lengths)
+            self.weight_labels.append(w_label)
             self.weight_boxes.append(w_box)
         
         self.update_lengths()
@@ -76,14 +81,16 @@ class Length_Frame(tkinter.Frame):
             self.length_boxes[i].delete(0, tkinter.END)
             self.length_boxes[i].insert(0, str(next_length))
             
-        self.input_labels[-1].destroy()
-        self.input_labels = self.input_labels[:-1]
+        self.length_labels[-1].destroy()
+        self.length_labels = self.length_labels[:-1]
         self.length_boxes[-1].destroy()
         self.length_boxes = self.length_boxes[:-1]
         self.remove_buttons[-1].destroy()
         self.remove_buttons = self.remove_buttons[:-1]
 
         if self.get_N() >= 2:
+            self.weight_labels[-1].destroy()
+            self.weight_labels = self.weight_labels[:-1]
             self.weight_boxes[-1].destroy()
             self.weight_boxes = self.weight_boxes[:-1]
         
