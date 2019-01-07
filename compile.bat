@@ -1,2 +1,2 @@
-pyinstaller -F __main__.py n_jointed_arm_ik.py page_frames.py arm_controller.py canvas.py input_section.py
+pyinstaller -F __main__.py n_jointed_arm_ik.py arm_controller.py canvas.py path_controller.py input_section.py pages/display_frame.py pages/length_frame.py pages/pathing_frame.py
 Copy ".\dist\__main__.exe" ".\N_Jointed_Arm_Controller.exe"
