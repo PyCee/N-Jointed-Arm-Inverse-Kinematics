@@ -1,5 +1,5 @@
 import tkinter
-from n_jointed_arm_ik import Vector
+from vector import Vector
 
 DEFAULT_LENGTH = 1.0
 DEFAULT_WEIGHT = 0.7

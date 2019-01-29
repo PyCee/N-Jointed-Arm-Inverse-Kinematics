@@ -4,7 +4,7 @@ REQ_EXE_FILES=__main__.py n_jointed_arm_ik.py arm_controller.py canvas.py path_c
 all: executable clean
 
 install:
-	sudo apt-get install python3-tk
+	sudo apt-get install python3-tk pip3
 	sudo pip3 install --upgrade pyinstaller
 test:
 	@python3 test.py
@@ -14,6 +14,7 @@ executable:
 	@pyinstaller -F $(REQ_EXE_FILES)
 	@cp ./dist/__main__ ./N_Jointed_Arm_Controller
 clean:
-	rm -r ./dist
-	rm -r ./build
-	rm ./*.spec
+	rm -rf ./dist
+	rm -rf ./build
+	rm -f ./*.spec
+	@find . -type f \( -name '*~' \) -delete

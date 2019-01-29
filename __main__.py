@@ -1,5 +1,5 @@
 import math
-from n_jointed_arm_ik import Vector
+from vector import Vector
 from arm_controller import Arm_Controller
 from pages.length_frame import Length_Frame
 from pages.display_frame import Display_Frame

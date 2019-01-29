@@ -1,6 +1,6 @@
 import tkinter
 from tkinter import ttk
-from n_jointed_arm_ik import Vector
+from vector import Vector
 from path_controller import Piecewise_Function, Path_Controller
 
 

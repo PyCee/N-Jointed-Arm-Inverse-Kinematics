@@ -1,6 +1,6 @@
 import math
 import tkinter
-from n_jointed_arm_ik import Vector
+from vector import Vector
 from input_section import Input_Box, Input_Slider
 
 MAX_SCALE = 100
@@ -43,10 +43,10 @@ class IK_Canvas(tkinter.Canvas):
                                   position.y + self.size + 10)
         self.point_x_entry.set_position(x_entry_position)
 
-        y_entry_position = x_entry_position.add(Vector(140, 0))
+        y_entry_position = x_entry_position + Vector(140, 0)
         self.point_y_entry.set_position(y_entry_position)
 
-        button_position = y_entry_position.add(Vector(140, 0))
+        button_position = y_entry_position + Vector(140, 0)
         self.update_button.place(x=button_position.x,
                                  y=button_position.y)
 
@@ -153,8 +153,8 @@ class IK_Canvas(tkinter.Canvas):
         sin_length = length * math.sin(absolute_radians)
         offset = Vector(cos_length, sin_length)
         
-        start_point = position.add(Vector(center_offset, center_offset))
-        end_point = start_point.add(offset)
+        start_point = position + Vector(center_offset, center_offset)
+        end_point = start_point + offset
         
         absolute_angle = absolute_radians * 180.0 / 3.14159
         relative_angle = relative_radians * 180.0 / 3.14159
@@ -175,7 +175,7 @@ class IK_Canvas(tkinter.Canvas):
         text_radians = absolute_radians - relative_radians / 2.0
         text_base = Vector(math.cos(text_radians),
                            math.sin(text_radians)).scale(text_distance)
-        text_base = text_base.add(start_point)
+        text_base = text_base + start_point
         
         if self.show_angle_text.get():
             # Draw text to show angle
@@ -281,10 +281,10 @@ class IK_Canvas(tkinter.Canvas):
                 self.draw_arm(position, arm_controller.lengths[i],
                               absolute_angle, radian,
                               offset)
-                position = position.add(Vector(arm_controller.lengths[i] *
-                                               math.cos(absolute_angle),
-                                               arm_controller.lengths[i] *
-                                               math.sin(absolute_angle)))
+                position = position + Vector(arm_controller.lengths[i] *
+                                             math.cos(absolute_angle),
+                                             arm_controller.lengths[i] *
+                                             math.sin(absolute_angle))
             
                 # Draw circles that represent origin and endpoint
                 r = 4.0 / self.scale_value

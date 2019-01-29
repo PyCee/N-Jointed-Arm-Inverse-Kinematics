@@ -1,5 +1,5 @@
-from n_jointed_arm_ik import Vector, n_jointed_arm_ik, n_joint_range
-
+from n_jointed_arm_ik import n_jointed_arm_ik, n_joint_range
+from vector import Vector
 class InvalidArmControllerParameters(Exception):
     pass
 
@@ -63,7 +63,7 @@ class Arm_Controller:
         Calculate new self.point based on what is
         within the range of self.lengths
         '''
-        if not self.point == None:
+        if not self.point is None:
             point_mag = self.point.magnitude()
             point_scale = 1.0
             if point_mag < self.lower_bound:
@@ -86,7 +86,7 @@ class Arm_Controller:
         '''
         Run inverse kinematics equations to update self.angles
         '''
-        if self.point != None:
+        if not self.point is None:
             self.angles = n_jointed_arm_ik(self.lengths,
                                            self.weights, self.point)
             self.update_event(self.angles)

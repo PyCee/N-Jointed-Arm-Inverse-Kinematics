@@ -1,6 +1,6 @@
 import tkinter
 from tkinter import Checkbutton
-from n_jointed_arm_ik import Vector
+from vector import Vector
 
 class Display_Frame(tkinter.Frame):
     def __init__(self, root):
