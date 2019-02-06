@@ -2,10 +2,62 @@ import math
 import tkinter
 from vector import Vector
 from input_section import Input_Box, Input_Slider
+from arc_bounded_area import DualArcBoundedArea, Arc
 
 MAX_SCALE = 100
 
 class IK_Canvas(tkinter.Canvas):
+
+    
+
+    '''TMP'''
+
+    def draw_arc(self, arc):
+        offset = self.size / 2.0
+        center = arc.get_origin() + Vector(offset, offset)
+        angle = arc.get_limits()[0] * 180.0 / 3.14159
+        angle_range = arc.get_limit_range() * 180.0 / 3.14159
+        self.create_arc(center.x - arc.get_radius(),
+                        center.y - arc.get_radius(),
+                        center.x + arc.get_radius(),
+                        center.y + arc.get_radius(),
+                        start=angle,
+                        extent=angle_range,
+                        fill="#333333",
+                        style="arc")
+        r = 4.0 / self.scale_value
+        first_point = arc.get_point_by_progress(0.0) + Vector(offset, offset)
+        self.create_oval(first_point.x - r, -r + first_point.y,
+                         r + first_point.x, r + first_point.y, 
+                         fill="#11f", width=0.0)
+        second_point = arc.get_point_by_progress(1.0) + Vector(offset, offset)
+        self.create_oval(second_point.x - r, -r + second_point.y,
+                         r + second_point.x, r + second_point.y, 
+                         fill="#11f", width=0.0)
+        
+    
+    def draw_arc_testing(self):
+        d_180 = 3.14159
+        d_90 = d_180 / 2.0
+        d_45 = d_180 / 4.0
+        d_30 = d_180 / 6.0
+
+        #Area Tests
+        #TODO::Put tests into testing program after finalization
+        #area = DualArcBoundedArea(1, 1, (0.0, d_90), (0.0, d_90))
+        area = DualArcBoundedArea(1, 1, (-d_45, d_90), (0.0, d_90))
+        i = -1
+        for arc in area.arcs:
+            self.draw_arc(arc)
+        
+        
+        
+        
+        
+        
+    '''END TMP'''
+
+
     def __init__(self, root, size, position, get_arm_controller):
         self.size = size
         self.center = self.size / 2.0
@@ -13,6 +65,7 @@ class IK_Canvas(tkinter.Canvas):
 
         super().__init__(root, width=self.size, height=self.size,
                          bg="white")
+        self.place(x=position.x, y=position.y)
 
         self.point = Vector(0, 0)
 
@@ -38,7 +91,6 @@ class IK_Canvas(tkinter.Canvas):
         self.bind("<B1-Motion>", lambda event, self=self:
                   self.set_point_from_canvas_event(event))
 
-        self.place(x=position.x, y=position.y)
         x_entry_position = Vector(position.x,
                                   position.y + self.size + 10)
         self.point_x_entry.set_position(x_entry_position)
@@ -189,8 +241,7 @@ class IK_Canvas(tkinter.Canvas):
             start_point.x + cos_width, start_point.y + sin_width,
             end_point.x + cos_width, end_point.y + sin_width,
             end_point.x - cos_width, end_point.y - sin_width,
-            start_point.x - cos_width, start_point.y - sin_width,
-        ]
+            start_point.x - cos_width, start_point.y - sin_width]
         self.create_polygon(points, fill="black")
     def draw_arm_bounds(self, lower_bound, upper_bound, offset):
         '''
@@ -297,6 +348,12 @@ class IK_Canvas(tkinter.Canvas):
                                  arm_controller.point.y+r + offset,
                                  fill="#f11", width=0.0)
         
+        #TMP
+        self.draw_arc_testing()
+        #END TMP
+        
         # Scale and translate canvas so arm base appears at center
         self.scale("all", offset, offset,
                    self.scale_value, -1.0 * self.scale_value)
+
+
