@@ -1,8 +1,10 @@
 import math
 import tkinter
-from vector import Vector
+from vector import Vector, Angle_Vector
 from input_section import Input_Box, Input_Slider
-from arc_bounded_area import DualArcBoundedArea, Arc
+from arc import Arc, Translate_Arc, Rotate_Arc
+from sweep import subdivide_swept_arc, sweep_arc
+#from arc_bounded_area import Arc#DualArcBoundedArea, Arc
 
 MAX_SCALE = 100
 
@@ -26,30 +28,39 @@ class IK_Canvas(tkinter.Canvas):
                         fill="#333333",
                         style="arc")
         r = 4.0 / self.scale_value
-        first_point = arc.get_point_by_progress(0.0) + Vector(offset, offset)
+        first_point = arc.get_first_point() + Vector(offset, offset)
         self.create_oval(first_point.x - r, -r + first_point.y,
                          r + first_point.x, r + first_point.y, 
                          fill="#11f", width=0.0)
-        second_point = arc.get_point_by_progress(1.0) + Vector(offset, offset)
+        second_point = arc.get_last_point() + Vector(offset, offset)
         self.create_oval(second_point.x - r, -r + second_point.y,
                          r + second_point.x, r + second_point.y, 
                          fill="#11f", width=0.0)
         
     
     def draw_arc_testing(self):
-        d_180 = 3.14159
+        d_180 = math.pi
         d_90 = d_180 / 2.0
         d_45 = d_180 / 4.0
         d_30 = d_180 / 6.0
-
+        d_15 = d_180 / 12.0
+        d_135 = d_45 * 3.0
         #Area Tests
-        #TODO::Put tests into testing program after finalization
-        #area = DualArcBoundedArea(1, 1, (0.0, d_90), (0.0, d_90))
-        area = DualArcBoundedArea(1, 1, (-d_45, d_90), (0.0, d_90))
-        i = -1
-        for arc in area.arcs:
-            self.draw_arc(arc)
+        length = 1.0
+        sweep = d_15
+        arc = Arc(Vector(0.0, 0.0), 1.0, (d_15, d_180))
+        base, arcs = subdivide_swept_arc(arc, 0, length, sweep)
+        #print(base)
+        #print(arcs)
+        # Base must be transformed like below after subdivisions
+        #   (For visual purposes)
+        base = sweep_arc(base, sweep, length)
+        #self.draw_arc(base)
+        #for arc in arcs:
+        #    self.draw_arc(arc)
         
+        #i dont remember what the below TODO meant...
+        #TODO: realize that the intersection around Vector(0.0, 0.0) is just -1.0 * angle
         
         
         
@@ -213,7 +224,6 @@ class IK_Canvas(tkinter.Canvas):
 
         if self.show_angle_arc.get():
             # Draw arc to show angle
-            
             self.create_arc(start_point.x - ARC_WIDTH,
                             start_point.y - ARC_WIDTH,
                             start_point.x + ARC_WIDTH,

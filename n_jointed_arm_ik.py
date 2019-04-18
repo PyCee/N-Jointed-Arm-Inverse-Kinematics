@@ -1,8 +1,11 @@
 import math
 import sys
 from vector import Vector
+from circle import Circle
 
 class OutOfRange(Exception):
+    pass
+class LengthException (Exception):
     pass
 class LengthsWeightsNotMatch(Exception):
     pass
@@ -21,9 +24,11 @@ def two_joint_validity(length_1, length_2, point):
 
     The valid range is length_2 away from length_1
     '''
+    if length_1 < 0.0 or length_2 < 0.0:
+        raise LengthException
     r_1, r_2 = two_joint_range(length_1, length_2)
     
-    # To help correct error
+    # To help correct floating-point error
     r_1 *= 0.99999
     r_2 *= 1.00001
     
@@ -86,36 +91,15 @@ def two_jointed_arm_ik(length_1, length_2, point):
     '''
     if not two_joint_validity(length_1, length_2, point):
         raise OutOfRange
-    distance = point.magnitude()
-    x_neg = point.x < 0.0
-    relative_angle = 0.0
-    x_1 = 0.0
-    
-    if not distance == 0:
-        relative_angle = math.asin(point.y / distance)
-        # Calculate the x value of the intersection points
-        x_1 = (distance**2 - length_2**2 + length_1**2) / (2 * distance)
-        
-    x_2 = distance - x_1
-        
-    #TODO look here for jump at -270 degrees in gui
-    if point.x < 0.0:
-        relative_angle = 3.14159 - relative_angle
-    # We use the lengths with the x values to calculate the
-    #   x value on the unit circle, and use acos to get the angle
-    base_1 = x_1 / length_1
-    base_2 = x_2 / length_2
-
-    base_1 = max(-1.0, base_1)
-    base_2 = max(-1.0, base_2)
-    base_1 = min(1.0, base_1)
-    base_2 = min(1.0, base_2)
-    
-    angle_1 = math.acos(base_1)
-    angle_2 = -1.0 * math.acos(base_2)
-        
-    angle_1 += relative_angle
-    angle_2 += relative_angle - angle_1
+    circle_1 = Circle(Vector(0.0, 0.0), length_1)
+    circle_2 = Circle(point, length_2)
+    intersections = circle_1.get_intersections(circle_2)
+    if len(intersections) == 0:
+        raise OutOfRange
+    angle_1 = Vector(0.0, 0.0).get_angle(intersections[0])
+    angle_2 = 3.14159
+    if intersections[0] != point:
+        angle_2 = intersections[0].get_angle(point) - angle_1
     return angle_1, angle_2
 
 def n_jointed_arm_ik(lengths, weights, point):
@@ -134,23 +118,22 @@ def n_jointed_arm_ik(lengths, weights, point):
         length_2 = sum(lengths[index+1:])
         a_1 = 0.0
         a_2 = 0.0
-        if not point.magnitude() == 0.0:
-            if index < len(lengths)-2:
-                low, upp = n_joint_range(lengths[index+1:])
-                
-                min_length_2 = max((0.00000000001, low,
-                                  math.fabs(point.magnitude() - length_1)))
-                max_length_2 = min(upp, point.magnitude() + length_1)
-                length_2 = min_length_2 + weights[index] * \
-                           (max_length_2 - min_length_2)
-                if length_2 == 0.0:
-                    length_2 = 0.0000000001
-            # Run a two jointed arm ik to find the angle for this joint
-            angles = two_jointed_arm_ik(length_1, length_2, point)
-            
-            if angles == None:
-                return None
-            a_1, a_2 = angles
+        #if not point.magnitude() == 0.0:
+        if index < len(lengths)-2:
+            low, upp = n_joint_range(lengths[index+1:])
+            min_length_2 = max(low,
+                               math.fabs(point.magnitude() - length_1))
+            max_length_2 = min(upp, point.magnitude() + length_1)
+            length_range = max_length_2 - min_length_2
+            weighted_range = weights[index] * length_range
+            length_2 = min_length_2 + weighted_range
+        # Run a two jointed arm ik to find the angle for this joint
+        angles = two_jointed_arm_ik(length_1, length_2, point)
+        if angles == None:
+            return None
+        a_1, a_2 = angles
+
+        # End of "if not point.magnitude() == 0.0:"
         # Store relative angle values
         resulting_angles[index] += a_1
         if index >= 1:
