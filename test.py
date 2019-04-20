@@ -2,7 +2,7 @@
 from n_jointed_arm_ik import *
 from vector import *
 from arc import Arc, Arc_Get_Break_Range
-from sweep import subdivide_swept_arc
+from sweep import get_swept_arc_subdivisions
 from circle import Circle
 from math import pi, fabs
 import sys
@@ -171,7 +171,7 @@ class Arc_Break_Range_Test (Test):
              fabs(resulting_ranges[1] - self.break_range[1]) > 0.00001):
             result = False
         self.end(result)
-class Arc_Subdivide_Sweep_Test (Test):
+class Swept_Arc_Subdivision_Test (Test):
     def __init__(self, T, E, start_arc, index, offset_length, sweep_radians,
                  resulting_base, resulting_arcs):
         super().__init__(T, E)
@@ -183,18 +183,27 @@ class Arc_Subdivide_Sweep_Test (Test):
         self.resulting_arcs = resulting_arcs
     def test(self):
         result = True
-        base, arcs = subdivide_swept_arc(self.start_arc,
-                                         self.index,
-                                         self.offset_length,
-                                         self.sweep_radians)
-        if base != self.resulting_base or len(arcs) != len(self.resulting_arcs):
+        base, arcs = get_swept_arc_subdivisions(self.start_arc,
+                                                self.index,
+                                                self.offset_length,
+                                                self.sweep_radians)
+        if base != self.resulting_base:
+            print("base differs")
+            result = False
+        elif len(arcs) != len(self.resulting_arcs):
+            print("number of arcs differs")
             result = False
         else:
             for i in range(len(self.resulting_arcs)):
                 if self.resulting_arcs[i] != arcs[i]:
+                    print("arc index " + str(i) + " is incorrect")
                     result = False
+                    break
         if not result:
+            print("Calculated:")
             print((base, arcs))
+            print("Expecting:")
+            print((self.resulting_base, self.resulting_arcs))
             
         self.end(result)
 class N_Joint_Limit_Test (Test):
@@ -435,79 +444,102 @@ Arc_Break_Range_Test("Arc Break Range Test #10", True,
                      (None, None))
 
 '''
-Test Arc Subdivide Sweep
+Test Swept Arc Subdivision
 '''
-
 # Basic sweep with no subdivision
-Arc_Subdivide_Sweep_Test("Arc Subdivide Sweep Test #1", True,
+Swept_Arc_Subdivision_Test("Swept Arc Subdivision Test #1", True,
                          Arc(Vector(0.0, 0.0), 1.0, (0.0, d_180)),
                          0, 1, d_45,
                          Arc(Vector(0.0, 0.0), 1.0, (0.0, d_180)),
                          [])
 # Sweep with no subdivision where limits are not same as
 # potential extremes
-Arc_Subdivide_Sweep_Test("Arc Subdivide Sweep Test #2", True,
+Swept_Arc_Subdivision_Test("Swept Arc Subdivision Test #2", True,
                          Arc(Vector(0.0, 0.0), 1.0, (d_45, d_180)),
                          0, 1.0, d_45,
                          Arc(Vector(0.0, 0.0), 1.0, (d_45, d_180)),
                          [])
 # Subdivision where sweep breaks arc
-Arc_Subdivide_Sweep_Test("Arc Subdivide Sweep Test #3", True,
-                         Arc(Vector(0.0, 0.0), 1.0, (-d_45, d_180)),
-                         0, 1.0, d_90,
-                         Arc(Vector(0.0, 0.0), 1.0, (d_45, d_180)),
-                         [Arc(Vector(0.0, 1.0), 1.0, (d_45, d_90)),
-                          Arc(Vector(0.0, 0.0), 1.847759,
-                              (1.178097, 1.963495))])
+Swept_Arc_Subdivision_Test("Swept Arc Subdivision Test #3", True,
+                           Arc(Vector(0.0, 0.0), 1.0,
+                               (-d_45, d_180)),
+                           0, 1.0, d_90,
+                           Arc(Vector(0.0, 0.0), 1.0, (d_45, d_180)),
+                           [Arc(Vector(1.0, 0.0), 1.0,
+                                (-0.7853981634, 0.0)),
+                            Arc(Vector(0.0, 0.0), 1.847759,
+                                (-0.3926990817, 0.3926990817))])
 # Subdivision where sweep breaks arc with second limit past extreme
-Arc_Subdivide_Sweep_Test("Arc Subdivide Sweep Test #4", True,
-                         Arc(Vector(0.0, 0.0), 1.0, (-d_45, -d_135)),
-                         0, 1.0, d_90,
-                         Arc(Vector(0.0, 0.0), 1.0, (d_45, -d_135)),
-                         [Arc(Vector(0.0, 1.0), 1, (d_45, d_90)),
-                          Arc(Vector(0.0, 0.0), 1.847759,
-                              (1.1780972451, 1.9634954085))])
+Swept_Arc_Subdivision_Test("Swept Arc Subdivision Test #4", True,
+                           Arc(Vector(0.0, 0.0), 1.0,
+                               (-d_45, -d_135)),
+                           0, 1.0, d_90,
+                           Arc(Vector(0.0, 0.0), 1.0,
+                               (d_45, -d_135)),
+                           [Arc(Vector(1.0, 0.0), 1.0,
+                                (-0.7853981634, 0.0)),
+                            Arc(Vector(0.0, 0.0), 1.847759,
+                                (-0.3926990817, 0.3926990817))])
 # Subdivision where sweep does not break arc and aditional arc
-Arc_Subdivide_Sweep_Test("Arc Subdivide Sweep Test #5", True,
-                         Arc(Vector(0.0, 0.0), 1.0, (-d_45, d_180)),
-                         0, 1.0, d_15,
-                         Arc(Vector(0.0, 0.0), 1.0,
-                             (0.2617993878, d_180)),
-                         [Arc(Vector(0.966, 0.259), 1.0,
-                              (-0.5235987756, 0.2617993878)),
-                          Arc(Vector(0.0, 0.0), 1.847759,
-                              (-0.1308996939, 0.1308996939)),
-                          Arc(Vector(0.866, 0.5), 1.0,
-                              (-0.2617993878, 0.2617993878))])
+Swept_Arc_Subdivision_Test("Swept Arc Subdivision Test #5", True,
+                           Arc(Vector(0.0, 0.0), 1.0,
+                               (-d_45, d_180)),
+                           0, 1.0, d_15,
+                           Arc(Vector(0.0, 0.0), 1.0,
+                               (0.2617993878, d_180)),
+                           [Arc(Vector(1.0, 0.0), 1.0,
+                                (-0.7853981634, 0.0)),
+                            Arc(Vector(0.0, 0.0), 1.847759,
+                                (-0.3926990817, -0.1308996939)),
+                            Arc(Vector(0.966, 0.259), 1.0,
+                                (-0.5235987756, 0.0))])
 # Subdivision where sweep does not break arc and adds an aditional arc, testing floating-point error
-Arc_Subdivide_Sweep_Test("Arc Subdivide Sweep Test #6", True,
-                         Arc(Vector(0.0, 0.0), 1.0, (-d_45, d_180)),
-                         0, 1.0, d_45,
-                         Arc(Vector(0.0, 0.0), 1.0, (d_45, d_180)),
-                         [Arc(Vector(0.707, 0.707), 1.0,
-                              (0.0, d_45)),
-                          Arc(Vector(0.0, 0.0), 1.847759,
-                              (0.3926990817, 1.1780972451))])
+Swept_Arc_Subdivision_Test("Swept Arc Subdivision Test #6", True,
+                           Arc(Vector(0.0, 0.0), 1.0,
+                               (-d_45, d_180)),
+                           0, 1.0, d_45,
+                           Arc(Vector(0.0, 0.0), 1.0, (d_45, d_180)),
+                           [Arc(Vector(1.0, 0.0), 1.0,
+                                (-0.7853981634, 0.0)),
+                            Arc(Vector(0.0, 0.0), 1.847759,
+                                (-0.3926990817, 0.3926990817))])
 # Subdivision with limit index [1], break arc
-Arc_Subdivide_Sweep_Test("Arc Subdivide Sweep Test #7", True,
-                         Arc(Vector(0.0, 0.0), 1.0, (0.0, -d_90)),
-                         1, 1.0, d_90,
-                         Arc(Vector(0.0, 0.0), 1.0, (0.0, d_90)),
-                         [Arc(Vector(0.0, 1.0), 1.0,
-                              (-1.5707989804, 0.0)),
-                          Arc(Vector(0.0, 0.0), 1.414214,
-                              (d_45, d_135))])
-
+Swept_Arc_Subdivision_Test("Swept Arc Subdivision Test #7", True,
+                           Arc(Vector(0.0, 0.0), 1.0,
+                               (0.0, -d_90)),
+                           1, 1.0, d_90,
+                           Arc(Vector(0.0, 0.0), 1.0,
+                               (0.0, d_90)),
+                           [Arc(Vector(1.0, 0.0), 1.0,
+                                (-3.1415926536, -1.5707963268)),
+                            Arc(Vector(0.0, 0.0), 1.414214,
+                                (-0.7853981634, 0.7853981634))])
 # Subdivision with limit index [1], not breaking arc
-Arc_Subdivide_Sweep_Test("Arc Subdivide Sweep Test #8", True,
+Swept_Arc_Subdivision_Test("Swept Arc Subdivision Test #8", True,
                          Arc(Vector(0.0, 0.0), 1.0, (0.0, -d_90)),
                          1, 1.0, d_90,
                          Arc(Vector(0.0, 0.0), 1.0,
                              (0.0, 1.5707963268)),
-                         [Arc(Vector(0.0, 1.0), 1.0,
-                              (-1.5707989804, 0.0)),
+                         [Arc(Vector(1.0, 0.0), 1.0,
+                              (-3.1415926536, -1.5707963268)),
                           Arc(Vector(0.0, 0.0), 1.414214,
-                              (0.7853981634, 2.3561944902))])
+                              (-0.7853981634, 0.7853981634))])
+# Subdivision where lower limit is overridden
+Swept_Arc_Subdivision_Test("Swept Arc Subdivision Test #9", True,
+                         Arc(Vector(0.0, 0.0), 1.0,
+                             (d_135, 0.0)),
+                         0, 1.0, d_90,
+                         Arc(Vector(0.0, 0.0), 1.0,
+                             (-3.1415926536, 0.0)),
+                         [])
+# Subdivision where upper limit is overridden
+Swept_Arc_Subdivision_Test("Swept Arc Subdivision Test #10", True,
+                         Arc(Vector(0.0, 0.0), 1.0,
+                             (d_180, d_45)),
+                         1, 1.0, d_90,
+                         Arc(Vector(0.0, 0.0), 1.0,
+                             (-3.1415926536, 0.0)),
+                         [])
 
 '''
 Test Arc Sweep

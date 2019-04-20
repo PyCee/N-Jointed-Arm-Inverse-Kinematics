@@ -11,7 +11,7 @@ class InvalidArcRadianException (Exception):
 ARC_RADIAN_RANGE = (-1.0 * pi, pi)
 
 def Arc_Radian(radian):
-    while radian <= ARC_RADIAN_RANGE[0]:
+    while radian < ARC_RADIAN_RANGE[0]:
         radian += 2.0 * pi
     while radian > ARC_RADIAN_RANGE[1]:
         radian -= 2.0 * pi
@@ -42,14 +42,15 @@ class Arc:
         if other == None:
             return False
         radius_diff = fabs(self.__radius - other.get_radius())
-        limit_0_diff = fabs(self.__limits[0] -
-                            other.get_limits()[0])
-        limit_1_diff = fabs(self.__limits[1] -
-                            other.get_limits()[1])
+        def limit_diff(lim_0, lim_1):
+            diff = fabs(self.__limits[0] - other.get_limits()[0])
+            return diff < 0.0000001 or diff > (2.0 * pi) - 0.000001
         return (self.__origin == other.get_origin() and
                 radius_diff < 0.000001 and
-                limit_0_diff < 0.000001 and
-                limit_1_diff < 0.000001)
+                limit_diff(self.__limits[0],
+                           other.get_limits()[0]) and
+                limit_diff(self.__limits[1],
+                           other.get_limits()[1]))
     def get_origin(self):
         return self.__origin
     def get_radius(self):
