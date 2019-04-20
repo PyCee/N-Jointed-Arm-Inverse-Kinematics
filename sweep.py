@@ -8,8 +8,8 @@ def sweep_arc(arc, angle, length):
     result = Rotate_Arc(result, angle)
     return result
 def flip_arc(arc):
-    flipped_limits = [arc.get_limits()[0] * -1.0,
-                      arc.get_limits()[1] * -1.0]
+    flipped_limits = [arc.get_limits()[1] * -1.0,
+                      arc.get_limits()[0] * -1.0]
     return Arc(arc.get_origin(), arc.get_radius(), flipped_limits)
         
 def get_swept_arc_subdivisions(arc, index,
@@ -53,7 +53,7 @@ def get_swept_arc_subdivisions(arc, index,
     intersection = None
 
     if limit_radians > 0.0 and \
-       fabs(arc.get_limits()[0]) > fabs(arc.get_limits()[1]):
+       fabs(arc.get_limits()[0]) >= fabs(arc.get_limits()[1]):
         if index == 0:
             return Arc(arc.get_origin(), arc.get_radius(),
                        (-1.0 * pi, arc.get_limits()[1])), []
@@ -71,9 +71,7 @@ def get_swept_arc_subdivisions(arc, index,
                         swept_arc.get_radius(),
                         cover_arc_limits)
         arcs.append(cover_arc)
-        #print(cover_arc_limits)
         # end if limit_radians != extreme_radians
-        
         intersection = swept_arc.get_point(-1.0 * limit_radians)
         abs_intersection_radians = Vector(0.0, 0.0).get_angle(intersection)
         if (sweep_radians + 0.000001) >= fabs(abs_intersection_radians - abs_limit_radians):
@@ -128,10 +126,13 @@ def get_swept_arc_subdivisions(arc, index,
     if intersection != None:
         base_arc_start_radians = swept_arc.get_origin().get_angle(intersection)
     base_arc_limits = [base_arc_start_radians, other_limit_radians]
-    if index == 1:
-        base_arc_limits = base_arc_limits[::-1]
-    base_arc = Arc(arc.get_origin(), swept_arc.get_radius(),
-                   base_arc_limits)
+    if base_arc_limits[0] != base_arc_limits[1]:
+        if index == 1:
+            base_arc_limits = base_arc_limits[::-1]
+        base_arc = Arc(arc.get_origin(), swept_arc.get_radius(),
+                       base_arc_limits)
+    else:
+        base_arc = None
     return base_arc, arcs
         
 def get_sweeping_arc_bounds(arc, length, limits):
@@ -143,45 +144,42 @@ def get_sweeping_arc_bounds(arc, length, limits):
     base, arcs = get_swept_arc_subdivisions(arc, 0, length,
                                             sweep_radians)
     starting_bounds += arcs
-    # Calculate subdivision based on 1st limit
-    base, arcs = get_swept_arc_subdivisions(base, 1, length,
-                                            sweep_radians)
-    starting_bounds += arcs
-    # Sweep portion of arc that was not subdivided
-    base = sweep_arc(base, 0.0, length)
-    starting_bounds.append(base)
+    if base != None:
+        # Calculate subdivision based on 1st limit
+        base, arcs = get_swept_arc_subdivisions(base, 1, length,
+                                                sweep_radians)
+        starting_bounds += arcs
+        # Sweep portion of arc that was not subdivided
+        base = sweep_arc(base, 0.0, length)
+        starting_bounds.append(base)
+        
     # Rotate starting bounds by limits[0]
     for i in range(len(starting_bounds)):
         starting_bounds[i] = Rotate_Arc(starting_bounds[i],
                                         limits[0])
-
-    '''
-    # TODO: try flipping the arc, calculating arcs like above, then flipping back, then rotate final_bounds by limits[1]
+        
     flipped_arc = flip_arc(arc)
-    #Calculate starting_bounds
+    #Calculate final_bounds
     final_bounds = []
     # Calculate subdivision based on 0th limit
     base, arcs = get_swept_arc_subdivisions(flipped_arc, 0, length,
                                             sweep_radians)
     final_bounds += arcs
-    # Calculate subdivision based on 1st limit
-    base, arcs = get_swept_arc_subdivisions(base, 1, length,
-                                            sweep_radians)
-    final_bounds += arcs
-    # Sweep portion of arc that was not subdivided
-    base = sweep_arc(base, 0.0, length)
-    final_bounds.append(base)
+    if base != None:
+        # Calculate subdivision based on 1st limit
+        base, arcs = get_swept_arc_subdivisions(base, 1, length,
+                                                sweep_radians)
+        final_bounds += arcs
+        # Sweep portion of arc that was not subdivided
+        base = sweep_arc(base, 0.0, length)
+        final_bounds.append(base)
     # Rotate starting bounds by limits[1]
     for i in range(len(final_bounds)):
         final_bounds[i] = flip_arc(final_bounds[i])
         final_bounds[i] = Rotate_Arc(final_bounds[i],
-                                        limits[1])
-    '''
-
-    results = []
-    results.extend(starting_bounds)
-    #results.extend(final_bounds)
-    return results
+                                     limits[1])
+        
+    return starting_bounds, final_bounds
     
 def sweep(list_of_arcs, length, limits):
     #Turn into 2 lists of arcs, angled upwards or downwards

@@ -540,6 +540,16 @@ Swept_Arc_Subdivision_Test("Swept Arc Subdivision Test #10", True,
                          Arc(Vector(0.0, 0.0), 1.0,
                              (-3.1415926536, 0.0)),
                          [])
+# Subdivision where limit[0] is equal to -1.0 * limit[1]
+Swept_Arc_Subdivision_Test("Swept Arc Subdivision Test #11", True,
+                         Arc(Vector(0.0, 0.0), 1.0,
+                             (-d_45, d_45)),
+                         0, 1.0, d_90,
+                         None,
+                         [Arc(Vector(1.0, 0.0), 1.0,
+                              (-0.7853981634, 0.0)),
+                          Arc(Vector(0.0, 0.0), 1.847759,
+                              (-0.3926990817, 0.3926990817))])
 
 '''
 Test Arc Sweep
