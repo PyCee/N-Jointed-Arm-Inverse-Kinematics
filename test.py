@@ -2,9 +2,10 @@
 from n_jointed_arm_ik import *
 from vector import *
 from arc import Arc, Arc_Get_Break_Range
-from sweep import get_swept_arc_subdivisions
+from sweep import get_swept_arc_subdivisions, get_swept_arc_bounds, sweep_area
 from circle import Circle
-from math import pi, fabs
+from math import pi, fabs, trunc
+from cull_arc_bounded_area import cull_arc_bounded_area
 import sys
 
 test_list = []
@@ -204,6 +205,69 @@ class Swept_Arc_Subdivision_Test (Test):
             print((base, arcs))
             print("Expecting:")
             print((self.resulting_base, self.resulting_arcs))
+            
+        self.end(result)
+class Swept_Arc_Bounds_Test (Test):
+    def __init__(self, T, E, arc, length, limits, results):
+        super().__init__(T, E)
+        self.arc = arc
+        self.length = length
+        self.limits = limits
+        self.results = results
+    def test(self):
+        result = True
+        results = get_swept_arc_bounds(self.arc, self.length,
+                                       self.limits)
+        if results != self.results:
+            result = False
+        if not result:
+            print("Expecting:")
+            print(self.results)
+            print("Calculated:")
+            print(results)
+            
+        self.end(result)
+        
+class Cull_Arc_Bounded_Area_Test (Test):
+    def __init__(self, T, E, arcs, results):
+        super().__init__(T, E)
+        self.arcs = arcs
+        self.results = results
+    def test(self):
+        result = True
+        results = cull_arc_bounded_area(self.arcs)
+        if results != self.results:
+            result = False
+        if not result:
+            print("Given:")
+            print(self.arcs)
+            print("Expecting:")
+            for arc in self.results:
+                print(arc)
+            print("Calculated:")
+            for arc in results:
+                print(arc)
+            
+        self.end(result)
+class Sweep_Area_Test (Test):
+    def __init__(self, T, E, arcs, length, limits, results):
+        super().__init__(T, E)
+        self.arcs = arcs
+        self.length = length
+        self.limits = limits
+        self.results = results
+    def test(self):
+        result = True
+        results = sweep_area(self.arcs, self.length, self.limits)
+        if results != self.results:
+            result = False
+        if not result:
+            print("Expecting:")
+            for arc in self.results:
+                print(arc)
+            print("Calculated:")
+            for arc in results:
+                print(arc)
             
         self.end(result)
 class N_Joint_Limit_Test (Test):
@@ -552,8 +616,43 @@ Swept_Arc_Subdivision_Test("Swept Arc Subdivision Test #11", True,
                               (-0.3926990817, 0.3926990817))])
 
 '''
-Test Arc Sweep
+Test Swept Arc Bounds
 '''
+#Basic Swept Arc Bounds Test
+Swept_Arc_Bounds_Test("Swept Arc Bounds Test #1", True,
+                      Arc(Vector(0.0, 0.0), 1.0, (-d_90, d_45)),
+                      1.0, (0.0, d_90),
+                      ([Arc(Vector(1.0, 0.0), 1.0,
+                            (-1.5707963268, 0.0))],
+                       [Arc(Vector(0.0, 1.0), 1.0,
+                            (1.5707963268, 2.3561944902)),
+                        Arc(Vector(0.0, 0.0), 1.847759,
+                            (1.1780972451, 1.9634954085)),
+                        Arc(Vector(0.0, 1.0), 1.0,
+                            (0.0, 0.7853981634))]))
+'''
+Test Area Arc Cull
+'''
+Cull_Arc_Bounded_Area_Test("Area Arc Cull Test #1", True,
+                           [Arc(Vector(0.0, 0.0), 3.0, (0.0, 1.5707963)), Arc(Vector(0.0, 0.0), 1.0000000, (1.5707963, 3.1415926)), Arc(Vector(1.0, 0.0), 2.0, (0.0, 1.5707963)), Arc(Vector(2.0, 0.0), 1.0, (-1.570796, 0.0)), Arc(Vector(1.0, 0.0), 1.4142135, (-0.785398, 0.0)), Arc(Vector(0.0, 0.0), 2.2360679, (-0.463647, 0.4636476)), Arc(Vector(1.0, 1.0), 1.0, (1.5707963, 3.1415926)), Arc(Vector(1.0, 0.0), 1.4142135, (0.7853981, 2.3561944)), Arc(Vector(0.0, 1.0), 2.0, (1.5707963, 3.1415926)), Arc(Vector(0.0, 2.0), 1.0, (0.0, 1.5707963)), Arc(Vector(0.0, 1.0), 1.4142135, (1.5707963, 2.3561944)), Arc(Vector(0.0, 0.0), 2.2360679, (1.1071487, 2.0344439)), Arc(Vector(-1.0, 1.0), 1.0, (3.1415926, -1.570796)), Arc(Vector(0.0, 1.0), 1.4142135, (2.3561944, -2.356194))],
+                           [Arc(Vector(0.0, 0.0), 3.0, (0.0, 1.5707963)), Arc(Vector(0.0, 0.0), 1.0000000, (1.5707963, 3.1415926)), Arc(Vector(2.0, 0.0), 1.0, (-1.570796, 0.0)), Arc(Vector(0.0, 0.0), 2.2360679, (-0.463647, 0.4636476)), Arc(Vector(1.0, 0.0), 1.4142135, (0.7853981, 2.3561944)), Arc(Vector(0.0, 1.0), 2.0, (1.5707963, 3.1415926)), Arc(Vector(-1.0, 1.0), 1.0, (3.1415926, -1.570796))])
+'''
+Test Sweep Area
+'''
+Sweep_Area_Test("Sweep Area Test #1", True,
+                [Arc(Vector(0.0, 0.0), 1.0, [-d_90, d_90])],
+                1.0, (0.0, d_90),
+                [Arc(Vector(0.0, 0.0), 2.0,
+                     (0.0, 1.5707963268)),
+                 Arc(Vector(1.0, 0.0), 1.0,
+                     (-1.5707963268, 0.0)),
+                 Arc(Vector(0.0, 0.0), 1.414214,
+                     (-0.7853981634, 0.7853981634)),
+                 Arc(Vector(0.0, 1.0), 1.0,
+                     (1.5707963268, 3.1415926536)),
+                 Arc(Vector(0.0, 0.0), 1.414214,
+                     (0.7853981634, 2.3561944902))])
+
 
 
 Run_Tests()

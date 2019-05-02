@@ -3,7 +3,8 @@ import tkinter
 from vector import Vector, Angle_Vector
 from input_section import Input_Box, Input_Slider
 from arc import Arc, Translate_Arc, Rotate_Arc
-from sweep import get_sweeping_arc_bounds, get_swept_arc_subdivisions
+from sweep import sweep_area
+from cull_arc_bounded_area import cull_arc_bounded_area
 
 MAX_SCALE = 100
 
@@ -44,15 +45,19 @@ class IK_Canvas(tkinter.Canvas):
         d_30 = d_180 / 6.0
         d_15 = d_180 / 12.0
         d_135 = d_45 * 3.0
-        #Area Tests
         length = 1.0
         sweep = (0.0, d_90)
-        arc = Arc(Vector(0.0, 0.0), 1.0, (-d_45, d_45))
-        starting_bounds, final_bounds = get_sweeping_arc_bounds(arc, length, sweep)
+        arcs = [Arc(Vector(0.0, 0.0), 1.0, (-d_90, d_90))]
+        arcs = sweep_area(arcs, length, sweep)
+        arcs = sweep_area(arcs, length, sweep)
+        arcs = sweep_area(arcs, length, sweep)
+        #arcs = sweep_area(arcs, length, sweep)
+        #arcs = sweep_area(arcs, length, sweep)
+        #print(arcs)
+        arcs = cull_arc_bounded_area(arcs)
+        #print(arcs)
         '''
-        for arc in starting_bounds:
-            self.draw_arc(arc)
-        for arc in final_bounds:
+        for arc in arcs:
             self.draw_arc(arc)
         '''
         

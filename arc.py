@@ -11,7 +11,7 @@ class InvalidArcRadianException (Exception):
 ARC_RADIAN_RANGE = (-1.0 * pi, pi)
 
 def Arc_Radian(radian):
-    while radian < ARC_RADIAN_RANGE[0]:
+    while radian <= ARC_RADIAN_RANGE[0]:
         radian += 2.0 * pi
     while radian > ARC_RADIAN_RANGE[1]:
         radian -= 2.0 * pi
@@ -34,9 +34,9 @@ class Arc:
     def __repr__(self):
         output = "Arc(Vector"
         output += str(self.__origin) + ", "
-        output += str(round(self.__radius, 6)) + ", ("
-        output += str(round(self.__limits[0], 10)) + ", "
-        output += str(round(self.__limits[1], 10)) + "))"
+        output += str(self.__radius)[:9] + ", ("
+        output += str(self.__limits[0])[:9] + ", "
+        output += str(self.__limits[1])[:9] + "))"
         return output
     def __eq__(self, other):
         if other == None:

@@ -27,13 +27,15 @@ class Vector:
     def dot(self, other):
         return self.x * other.x + self.y * other.y
     def cross_z(self, other):
-        return self.x * other.y - self.y * self.x
+        return self.x * other.y - self.y * other.x
     def get_angle(self, other):
         norm_difference = (other - self).normalize()
         angle = math.acos(norm_difference.x)
         if math.asin(norm_difference.y) < 0.0:
             angle *= -1.0
         return angle
+    def get_abs_angle(self):
+        return Vector(0.0, 0.0).get_angle(self)
     
 def Angle_Vector(radians, length):
     return Vector(math.cos(radians), math.sin(radians)).scale(length)

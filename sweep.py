@@ -2,6 +2,7 @@ from math import sin, cos, tan, fabs, acos, asin, pi
 from vector import Vector, Angle_Vector
 from circle import Circle
 from arc import Arc, Translate_Arc, Rotate_Arc, Arc_Circle
+from cull_arc_bounded_area import cull_arc_bounded_area
 
 def sweep_arc(arc, angle, length):
     result = Translate_Arc(arc, length)
@@ -135,7 +136,7 @@ def get_swept_arc_subdivisions(arc, index,
         base_arc = None
     return base_arc, arcs
         
-def get_sweeping_arc_bounds(arc, length, limits):
+def get_swept_arc_bounds(arc, length, limits):
     sweep_radians = limits[1] - limits[0]
     
     #Calculate starting_bounds
@@ -173,7 +174,7 @@ def get_sweeping_arc_bounds(arc, length, limits):
         # Sweep portion of arc that was not subdivided
         base = sweep_arc(base, 0.0, length)
         final_bounds.append(base)
-    # Rotate starting bounds by limits[1]
+    # Rotate final bounds by limits[1]
     for i in range(len(final_bounds)):
         final_bounds[i] = flip_arc(final_bounds[i])
         final_bounds[i] = Rotate_Arc(final_bounds[i],
@@ -181,24 +182,67 @@ def get_sweeping_arc_bounds(arc, length, limits):
         
     return starting_bounds, final_bounds
     
-def sweep(list_of_arcs, length, limits):
+def sweep_area(list_of_arcs, length, limits):
     #Turn into 2 lists of arcs, angled upwards or downwards
     #    (dividing arcs as needed)
-    right_arcs = []
-    left_arcs = []
+    results = []
+    total_start_bounds = []
+    total_final_bounds = []
 
-    #Transform right half by length and limits[0]
-    #Transform left half by length and limits[1]
+    for arc in list_of_arcs:
+        start_arcs, final_arcs = get_swept_arc_bounds(arc, length,
+                                                      limits)
+        total_start_bounds.extend(start_arcs)
+        total_final_bounds.extend(final_arcs)
+        
+    furthest_start_extreme = None
+    nearest_start_extreme = None
+    for arc in total_start_bounds:
+        for extreme in arc.get_extremes():
+            mag = extreme.magnitude()
+            if furthest_start_extreme == None or \
+               mag > furthest_start_extreme.magnitude() or \
+               (mag == furthest_start_extreme.magnitude() and 
+                furthest_start_extreme.cross_z(extreme) > 0.0):
+                furthest_start_extreme = extreme
+            if nearest_start_extreme == None or \
+               mag < nearest_start_extreme.magnitude() or \
+               (mag == nearest_start_extreme.magnitude() and 
+                nearest_start_extreme.cross_z(extreme) > 0.0):
+                nearest_start_extreme = extreme
+    furthest_final_extreme = None
+    nearest_final_extreme = None
+    for arc in total_final_bounds:
+        for extreme in arc.get_extremes():
+            mag = extreme.magnitude()
+            if furthest_final_extreme == None or \
+               mag > furthest_final_extreme.magnitude() or \
+               (mag == furthest_final_extreme.magnitude() and 
+                furthest_final_extreme.cross_z(extreme) < 0.0):
+                furthest_final_extreme = extreme
+            if nearest_final_extreme == None or \
+               mag < nearest_final_extreme.magnitude() or \
+               (mag == nearest_final_extreme.magnitude() and 
+                nearest_final_extreme.cross_z(extreme) < 0.0):
+                nearest_final_extreme = extreme
 
-    #Find furthest point of all arcs in right half
-    #Extend arc to meet right half
+    if furthest_start_extreme != furthest_final_extreme:
+        outer_arc = Arc(Vector(0.0, 0.0),
+                        furthest_start_extreme.magnitude(),
+                        (furthest_start_extreme.get_abs_angle(),
+                         furthest_final_extreme.get_abs_angle()))
+        results.append(outer_arc)
     
-    #Find closest point of all arcs in right half
-    #Extend arc to meet right half
+    if nearest_start_extreme != nearest_final_extreme:
+        inner_arc = Arc(Vector(0.0, 0.0),
+                        nearest_start_extreme.magnitude(),
+                        (nearest_start_extreme.get_abs_angle(),
+                         nearest_final_extreme.get_abs_angle()))
+        results.append(inner_arc)
 
-    #Find inflection points in right half
-    #Extend left until they meet another right-arc and divide/remove the arc that was met so there is no arc in bounded area
+    results += total_start_bounds
+    results += total_final_bounds
+
+    results = cull_arc_bounded_area(results)
     
-    #Find inflection points in left half
-    #Extend right until they meet another right-arc and divide/remove the arc that was met so there is no arc in bounded area
-
+    return results
