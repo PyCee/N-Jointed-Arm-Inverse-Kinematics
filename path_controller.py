@@ -1,4 +1,4 @@
-from n_jointed_arm_ik import Vector, OutOfRange
+from n_jointed_arm_ik import Vector, OutOfRangeException
 from math import *
 
 #Path runtime (seconds)

@@ -3,11 +3,11 @@ import sys
 from vector import Vector
 from circle import Circle
 
-class OutOfRange(Exception):
+class OutOfRangeException (Exception):
     pass
 class LengthException (Exception):
     pass
-class LengthsWeightsNotMatch(Exception):
+class LengthsWeightsNotMatchException (Exception):
     pass
     
 def two_joint_range(length_1, length_2):
@@ -60,6 +60,9 @@ def n_joint_validity(L, point):
     returns True if an N-jointed arm with lengths array L
     can reach point
     '''
+    for length in L:
+        if length < 0.0:
+            raise LengthException
     r_1, r_2 = n_joint_range(L)
     distance = point.magnitude()
     return r_1 <= distance and distance <= r_2
@@ -90,12 +93,12 @@ def two_jointed_arm_ik(length_1, length_2, point):
     the angles for each joint.
     '''
     if not two_joint_validity(length_1, length_2, point):
-        raise OutOfRange
+        raise OutOfRangeException
     circle_1 = Circle(Vector(0.0, 0.0), length_1)
     circle_2 = Circle(point, length_2)
     intersections = circle_1.get_intersections(circle_2)
     if len(intersections) == 0:
-        raise OutOfRange
+        raise OutOfRangeException
     angle_1 = Vector(0.0, 0.0).get_angle(intersections[0])
     angle_2 = 3.14159
     if intersections[0] != point:
@@ -104,11 +107,11 @@ def two_jointed_arm_ik(length_1, length_2, point):
 
 def n_jointed_arm_ik(lengths, weights, point):
     if not n_joint_validity(lengths, point):
-        raise OutOfRange
+        raise OutOfRangeException
     if len(lengths)-2 != len(weights):
         print("lengths: " + str(lengths))
         print("weights: " + str(weights))
-        raise LengthsWeightsNotMatch
+        raise LengthsWeightsNotMatchException
     
     resulting_angles = [0] * len(lengths)
     for index in range(len(lengths)-1):
@@ -174,12 +177,12 @@ def n_jointed_arm_limit_ik(lengths, lower_limits, upper_limits,
 
     ###TODO: change this to limit validity function
     if not n_joint_validity(lengths, point):
-        raise OutOfRange
+        raise OutOfRangeException
     
     if len(lengths)-2 != len(weights):
         print("lengths: " + str(lengths))
         print("weights: " + str(weights))
-        raise LengthsWeightsNotMatch
+        raise LengthsWeightsNotMatchException
     
     resulting_angles = [0] * len(lengths)
     for index in range(len(lengths)-1):

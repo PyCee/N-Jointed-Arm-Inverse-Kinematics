@@ -1,5 +1,5 @@
 
-REQ_EXE_FILES=__main__.py n_jointed_arm_ik.py arm_controller.py canvas.py path_controller.py input_section.py pages/display_frame.py pages/length_frame.py pages/pathing_frame.py
+REQ_EXE_FILES=__main__.py n_jointed_arm_ik.py arm_controller.py canvas.py path_controller.py input_section.py display_settings.py pages/display_frame.py pages/length_frame.py pages/pathing_frame.py
 
 all: executable clean
 
@@ -7,7 +7,7 @@ install:
 	sudo apt-get install python3-tk python-tk python3-pip
 	sudo pip3 install --upgrade pyinstaller
 test:
-	@python3 test.py
+	python3 unittesting.py
 run:
 	@python3 __main__.py
 executable:

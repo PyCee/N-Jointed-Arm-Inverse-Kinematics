@@ -3,8 +3,9 @@ import tkinter
 from vector import Vector, Angle_Vector
 from input_section import Input_Box, Input_Slider
 from arc import Arc, Translate_Arc, Rotate_Arc
-from sweep import sweep_area
+from sweep import sweep_area, get_swept_arc_subdivisions
 from cull_arc_bounded_area import cull_arc_bounded_area
+import display_settings
 
 MAX_SCALE = 100
 
@@ -47,10 +48,10 @@ class IK_Canvas(tkinter.Canvas):
         d_135 = d_45 * 3.0
         length = 1.0
         sweep = (0.0, d_90)
-        arcs = [Arc(Vector(0.0, 0.0), 1.0, (-d_90, d_90))]
+        arcs = [Arc(Vector(0.0, 0.0), 1.0, (-d_90, d_45))]
         arcs = sweep_area(arcs, length, sweep)
-        arcs = sweep_area(arcs, length, sweep)
-        arcs = sweep_area(arcs, length, sweep)
+        #arcs = sweep_area(arcs, length, sweep)
+        #arcs = sweep_area(arcs, length, sweep)
         #arcs = sweep_area(arcs, length, sweep)
         #arcs = sweep_area(arcs, length, sweep)
         #print(arcs)
@@ -111,18 +112,6 @@ class IK_Canvas(tkinter.Canvas):
         scale_slider_position = Vector(position.x,
                                        position.y + self.size + 40)
         self.scale_slider.set_position(scale_slider_position)
-
-        self.show_grid = tkinter.IntVar()
-        self.show_grid.set(1)
-        self.show_grid_numbers = tkinter.IntVar()
-        self.show_grid_numbers.set(1)
-        self.show_arm_bounds = tkinter.IntVar()
-        self.show_arm_bounds.set(1)
-        self.show_angle_text = tkinter.IntVar()
-        self.show_angle_text.set(0)
-        self.show_angle_arc = tkinter.IntVar()
-        self.show_angle_arc.set(0)
-
         self.get_arm_controller = get_arm_controller
 
     def set_point_from_canvas_event(self, event):
@@ -217,7 +206,7 @@ class IK_Canvas(tkinter.Canvas):
         absolute_angle = absolute_radians * 180.0 / 3.14159
         relative_angle = relative_radians * 180.0 / 3.14159
 
-        if self.show_angle_arc.get():
+        if display_settings.ShowAngleArc.get():
             # Draw arc to show angle
             self.create_arc(start_point.x - ARC_WIDTH,
                             start_point.y - ARC_WIDTH,
@@ -234,12 +223,14 @@ class IK_Canvas(tkinter.Canvas):
                            math.sin(text_radians)).scale(text_distance)
         text_base = text_base + start_point
         
-        if self.show_angle_text.get():
-            # Draw text to show angle
-            
+        if display_settings.ShowAngleText.get():
+            # Draw text to show angles
+            draw_angle = relative_angle
+            if display_settings.AngleUnits.get() == display_settings.UNITS_RADIANS:
+                draw_angle *= (3.14159 / 180.0)
             self.create_text(text_base.x, text_base.y,
                              font=("Times", 10, "bold"), fill="black",
-                             anchor="s", text=str(round(relative_angle, 2)))
+                             anchor="s", text=str(round(draw_angle, 2)))
         
         # Draw rectangle to represent arm
         points = [
@@ -294,7 +285,7 @@ class IK_Canvas(tkinter.Canvas):
 
             line_position = offset + lower_line_value
             displayed_line_value = str(line_value).rstrip('0').rstrip('.')
-            if self.show_grid_numbers.get():
+            if display_settings.ShowGridNumbers.get():
                 if i != 0:
                     # If this is the center line, don't draw the line value
                     #   (it looksbad if draw alongside the value for the
@@ -317,13 +308,13 @@ class IK_Canvas(tkinter.Canvas):
         self.delete("all")
 
         offset = self.size / 2.0
-        if self.show_grid.get():
+        if display_settings.ShowGrid.get():
             self.draw_grid_lines(offset)
 
         arm_controller = self.get_arm_controller()
         if len(arm_controller.lengths) != 0:
             
-            if self.show_arm_bounds.get():
+            if display_settings.ShowArmBounds.get():
                 self.draw_arm_bounds(arm_controller.lower_bound,
                                      arm_controller.upper_bound,
                                      offset)

@@ -1,3 +1,8 @@
+
+import tkinter
+from tkinter import ttk
+top = tkinter.Tk()
+
 import math
 from vector import Vector
 from arm_controller import Arm_Controller
@@ -6,14 +11,11 @@ from pages.display_frame import Display_Frame
 from pages.pathing_frame import Pathing_Frame
 from canvas import IK_Canvas
 
-import tkinter
-from tkinter import ttk
 
 TITLE = "N-Joint Inverse Kinematics"
 WIDTH = 1030
 HEIGHT = 500
 
-top = tkinter.Tk()
 top.title(TITLE)
 top.geometry(str(WIDTH)+"x"+str(HEIGHT)+"+400+10")
 
