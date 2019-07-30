@@ -8,8 +8,8 @@ class Vector:
         return "(" + str(round(self.x, 3)) + ", " + \
             str(round(self.y, 3)) + ")"
     def __eq__(self, other):
-        return other != None and math.fabs(self.x - other.x) < 0.001 and \
-                        math.fabs(self.y - other.y) < 0.001
+        return other != None and math.isclose(self.x, other.x, abs_tol=0.001) and \
+                        math.isclose(self.y, other.y, abs_tol=0.001)
     def __add__(self, other):
         return Vector(self.x + other.x, self.y + other.y)
     def __sub__(self, other):
@@ -35,6 +35,8 @@ class Vector:
             angle *= -1.0
         return angle
     def get_abs_angle(self):
+        if self == Vector(0.0, 0.0):
+            return 0.0
         return Vector(0.0, 0.0).get_angle(self)
     
 def Angle_Vector(radians, length):

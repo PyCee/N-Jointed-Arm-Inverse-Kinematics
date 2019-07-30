@@ -1,7 +1,7 @@
 
 from n_jointed_arm_ik import *
 from vector import *
-from arc import Arc, Arc_Get_Break_Range
+from arc import Arc#, Arc_Get_Break_Range
 from sweep import get_swept_arc_subdivisions, get_swept_arc_bounds, sweep_area
 from circle import Circle
 from math import pi, fabs, trunc
@@ -300,54 +300,6 @@ class N_Joint_Limit_Test (Test):
         self.end(True)
     
 '''
-Test Circle Creation
-'''
-Circle_Creation_Test("Circle Creation Test #1", True,
-                     Vector(0.0, 0.0), 1.0)
-Circle_Creation_Test("Circle Creation Test #2", True,
-                     Vector(0.0, 0.0), 0.0)
-Circle_Creation_Test("Circle Creation Test #3", False,
-                     Vector(0.0, 0.0), -1.0)
-'''
-Test Circle Intersection
-'''
-Circle_Intersection_Test("Circle Intersection Test #1", True,
-                         Circle(Vector(0.0, 0.0), 1.0),
-                         Circle(Vector(1.0, 0.0), 1.0),
-                         [Vector(0.5, 0.866), Vector(0.5, -0.866)])
-Circle_Intersection_Test("Circle Intersection Test #2", True,
-                         Circle(Vector(0.0, 0.0), 1.0),
-                         Circle(Vector(1.0, 2.0), 2.0),
-                         [Vector(-0.6, 0.8), Vector(1.0, 0.0)])
-Circle_Intersection_Test("Circle Intersection Test #3", True,
-                         Circle(Vector(0.0, 0.0), 1.0),
-                         Circle(Vector(1.0, -2.0), 2.0),
-                         [Vector(-0.6, -0.8), Vector(1.0, 0.0)])
-Circle_Intersection_Test("Circle Intersection Test #4", True,
-                         Circle(Vector(0.0, 0.0), 1.0),
-                         Circle(Vector(2.0, 0.0), 1.0),
-                         [Vector(1.0, 0.0)])
-Circle_Intersection_Test("Circle Intersection Test #5", True,
-                         Circle(Vector(0.0, 0.0), 1.0),
-                         Circle(Vector(5.0, 0.0), 1.0),
-                         [])
-Circle_Intersection_Test("Circle Intersection Test #6", True,
-                         Circle(Vector(0.0, 0.0), 3.0),
-                         Circle(Vector(1.5, 0.0), 1.0),
-                         [])
-Circle_Intersection_Test("Circle Intersection Test #7", True,
-                         Circle(Vector(0.0, 0.0), 1.0),
-                         Circle(Vector(0.0, 0.0), 2.0),
-                         [])
-Circle_Intersection_Test("Circle Intersection Test #8", True,
-                         Circle(Vector(0.0, 0.0), 1.0),
-                         Circle(Vector(0.0, 0.0), 1.0),
-                         [Vector(1.0, 0.0)])
-Circle_Intersection_Test("Circle Intersection Test #9", True,
-                         Circle(Vector(0.0, 0.0), 0.0),
-                         Circle(Vector(1.0, 0.0), 1.0),
-                         [Vector(0.0, 0.0)])
-'''
 Test Two Joint Validity
 '''
 Two_Joint_Validity_Test("Two Joint Validity Test #1", True,
@@ -371,6 +323,7 @@ Two_Joint_Test("Two Joint IK Test #5", True,
                [10.0, 1.0], Vector(11.0, 0.0))
 Two_Joint_Test("Two Joint IK Test #6", True,
                [10.0, 1.0], Vector(-11.0, 0.0))
+
 Two_Joint_Test("Two Joint IK Test #7", True,
                [10.0, 1.0], Vector(9.0, 0.0))
 Two_Joint_Test("Two Joint IK Test #8", True,
@@ -476,15 +429,18 @@ Arc_Extremes_Test("Arc Extremes Test #7", True,
 '''
 Test Arc Break Range
 '''
+'''
 Arc_Break_Range_Test("Arc Break Range Test #1", True,
                      Arc(Vector(0.0, 0.0), 1, (0.0, d_45)),
                      (None, None))
 Arc_Break_Range_Test("Arc Break Range Test #2", True,
                      Arc(Vector(1.0, 0.0), 1, (-d_45, d_90)),
                      (0.7853981, None))
+
 Arc_Break_Range_Test("Arc Break Range Test #3", True,
                      Arc(Vector(1.0, 0.0), 1, (-d_90, d_45)),
                      (None, 0.7853981))
+
 Arc_Break_Range_Test("Arc Break Range Test #4", True,
                      Arc(Vector(2.0, 0.0), 1, (-d_45, d_90)),
                      (0.5109907, None))
@@ -505,8 +461,7 @@ Arc_Break_Range_Test("Arc Break Range Test #9", True,
                      (None, 2.356194))
 Arc_Break_Range_Test("Arc Break Range Test #10", True,
                      Arc(Vector(0.0, 0.0), 1, (-d_45, d_90)),
-                     (None, None))
-
+                     (None, None))'''
 '''
 Test Swept Arc Subdivision
 '''
@@ -578,6 +533,7 @@ Swept_Arc_Subdivision_Test("Swept Arc Subdivision Test #7", True,
                                 (-3.1415926536, -1.5707963268)),
                             Arc(Vector(0.0, 0.0), 1.414214,
                                 (-0.7853981634, 0.7853981634))])
+
 # Subdivision with limit index [1], not breaking arc
 Swept_Arc_Subdivision_Test("Swept Arc Subdivision Test #8", True,
                          Arc(Vector(0.0, 0.0), 1.0, (0.0, -d_90)),

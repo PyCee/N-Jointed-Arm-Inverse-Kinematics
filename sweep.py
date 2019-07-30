@@ -135,8 +135,11 @@ def get_swept_arc_subdivisions(arc, index,
     else:
         base_arc = None
     return base_arc, arcs
-        
+
 def get_swept_arc_bounds(arc, length, limits):
+    '''
+    Sweep an arc and return the upper and lower limits
+    '''
     sweep_radians = limits[1] - limits[0]
     
     #Calculate starting_bounds
