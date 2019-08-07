@@ -48,7 +48,7 @@ class IK_Canvas(tkinter.Canvas):
         d_135 = d_45 * 3.0
         length = 1.0
         sweep = (0.0, d_90)
-        arcs = [Arc(Vector(0.0, 0.0), 1.0, (-d_90, d_45))]
+        arcs = [Arc(Vector(0.0, 0.0), 1.0, (-d_90, d_90))]
         arcs = sweep_area(arcs, length, sweep)
         #arcs = sweep_area(arcs, length, sweep)
         #arcs = sweep_area(arcs, length, sweep)
@@ -57,10 +57,10 @@ class IK_Canvas(tkinter.Canvas):
         #print(arcs)
         arcs = cull_arc_bounded_area(arcs)
         #print(arcs)
-        '''
+        
         for arc in arcs:
             self.draw_arc(arc)
-        '''
+        
         
     '''END TMP'''
 

@@ -66,7 +66,7 @@ class Arc:
     def is_valid_angle(self, radians):
         limits_range = self.get_limit_range() * 1.0000001
         moded_radians = (radians - self.__limits[0])
-        if fabs(moded_radians) < 0.0000001:
+        if fabs(moded_radians) < 0.00000001:
             return True
         return moded_radians % (2.0 * pi) < limits_range
         
