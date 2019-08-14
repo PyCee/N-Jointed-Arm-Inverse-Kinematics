@@ -103,44 +103,20 @@ class Arc:
     def get_tangent(self, point):
         angle = self.__origin.get_angle(point)
         if not self.is_valid_angle(angle):
+            print(self)
+            print(angle)
             raise InvalidArcRadianException
         return Arc_Radian((pi / 2.0) + angle)
-            
+    def get_arc_intersections(self, arc):
+        intersections = Arc_Circle(self).get_intersections(Arc_Circle(arc))
+        results = []
+        for intersection in intersections:
+            if Is_Point_In_Arc(intersection, self) and \
+               Is_Point_In_Arc(intersection, arc):
+                results.append(intersection)
+        return results
     def get_break_range(self):
-        '''
-        Calculates angle difference from origin (0, 0) for each extreme needed 
-        to break the other side of the arc (counter-clockwise)
-        If there is no angle that will break the arc, the value is 
-        None.
-        
-        returns in format:
-        (angle for 0-nth extreme break, angle for 1-nth extreme break)
-        '''
-        if self.get_origin().magnitude() == 0.0:
-            return (None, None)
-        angles = []
-        arc_circle = Arc_Circle(self)
-        for i in range(2):
-            limit_point = self.get_point(self.get_limits()[i])
-            point_mag = limit_point.magnitude()
-            base_circle = Circle(Vector(0.0, 0.0), point_mag)
-            intersections = base_circle.get_intersections(arc_circle)
-            if len(intersections) < 2 or \
-               (not Is_Point_In_Arc(intersections[0], self)) or \
-               (not Is_Point_In_Arc(intersections[1], self)):
-                '''
-                If there are not 2 intersections or
-                one of the intersections is not on the arc
-                '''
-                angles.append(None)
-            else:
-                angle1 = Vector(0.0, 0.0).get_angle(intersections[0])
-                angle2 = Vector(0.0, 0.0).get_angle(intersections[1])
-                angle = fabs(angle1 - angle2)
-                if angle <= 0.0:
-                    angle = None
-                angles.append(angle)
-        return (angles[0], angles[1])
+        pass
     
 def Translate_Arc(arc, length):
     '''

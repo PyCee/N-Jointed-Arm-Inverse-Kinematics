@@ -36,141 +36,45 @@ def limited_n_jointed_arm_validity(lengths, lower_limits, upper_limits,
     '''
     arcs = limited_n_jointed_arm_range(lengths, lower_limits, upper_limits)
     return arc_bounded_area_contains_point(arcs, point)
-'''
-def limited_n_jointed_arm_ik(lengths, lower_limits, upper_limits,
-                             weights, point):
-    ''
-    Calculates ik angles for joints with angle limits
-    lower and upper limits are in radians
-    ''
-    
-    if not limited_n_jointed_arm_validity(lengths, lower_limits, upper_limits, point):
-        raise OutOfRangeException
-    
-    if len(lengths)-2 != len(weights):
-        print("lengths: " + str(lengths))
-        print("weights: " + str(weights))
-        raise LengthsWeightsNotMatchException
-    
-    resulting_angles = [0] * len(lengths)
-    for index in range(len(lengths)-1):
-        # Calculate multiplier based on weight
-        mult = 1.0
-        length_1 = lengths[index]
-        length_2 = sum(lengths[index+1:])
-        a_1 = 0.0
-        a_2 = 0.0
-        if not point.magnitude() == 0.0:
-            if index < len(lengths)-2:
-                low, upp = n_joint_range(lengths[index+1:])
-                
-                lesser_angle = 0.0
-                greater_angle = 0.0
-                
-                if (lower_limits[index] == None or
-                    lower_limits[index] < 0.0) and \
-                    (upper_limits[index] == None or
-                     upper_limits[index] > 0.0):
-                    lesser_angle = 0.0
-                elif lower_limits[index] == None:
-                    lesser_angle = upper_limits[index]
-                elif upper_limits[index] == None:
-                    lesser_angle = lower_limits[index]
-                else:
-                    lesser_angle = min(math.fabs(lower_limits[index]),
-                                       math.fabs(upper_limits[index]))
-                if lower_limits[index] == None:
-                    greater_angle = upper_limits[index]
-                elif upper_limits[index] == None:
-                    greater_angle = lower_limits[index]
-                else:
-                    greater_angle = max(math.fabs(lower_limits[index]),
-                                        math.fabs(upper_limits[index]))
-                ''
-                print("lesser: " + str(lesser_angle))
-                print("greater: " + str(greater_angle))
-                ''
-                closer_point = Vector(math.cos(lesser_angle),
-                                      math.sin(lesser_angle)).scale(length_1)
-                further_point = Vector(math.cos(greater_angle),
-                                       math.sin(greater_angle)).scale(length_1)
-                lesser_dist = point.subtract(closer_point).magnitude()
-                greater_dist = point.subtract(further_point).magnitude()
-                
-                min_length_2 = max((0.00000000001, low, lesser_dist))
-                max_length_2 = min(upp, greater_dist)
-                length_2 = min_length_2 + weights[index] * \
-                           (max_length_2 - min_length_2)
-                ''
-                print("min: " + str(min_length_2))
-                print("max: " + str(max_length_2))
-                ''
-                if length_2 == 0.0:
-                    length_2 = 0.0000000001
-            # Run a two jointed arm ik to find the angle for this joint
-            angles = two_jointed_arm_ik(length_1, length_2, point)
-            
-            if angles == None:
-                return None
-            a_1, a_2 = angles
-            
-        # If a_1 must be negative due to limits
-        if upper_limits[index] != None and a_1 > upper_limits[index] and \
-           (lower_limits[index] == None or -1.0 * a_1 >= lower_limits[index]):
-            a_1 *= -1.0
-            a_2 *= -1.0
-        
-        # Store relative angle values
-        resulting_angles[index] += a_1
-        if index >= 1:
-            resulting_angles[index] -= sum(resulting_angles[:index])
-        if index == len(lengths)-2:
-            resulting_angles[index+1] = a_2
-            
-        # Subtract current progress to the point
-        absolute_angle = sum(resulting_angles[:index+1])
-        offset = Vector(lengths[index] * math.cos(absolute_angle),
-                        lengths[index] * math.sin(absolute_angle))
-        point = point - offset
-    return resulting_angles
-'''
-def limited_angle_range(arc_bounded_area, magnitude):
-    point_circle = Circle(Vector(0.0, 0.0), magnitude)
-    unorganized_results = []
+
+
+
+def overlapping_arc_with_bounded_area_range(overlap_arc, arc_bounded_area):
+    total_intersections = []
     for arc in arc_bounded_area:
-        intersections = point_circle.get_intersections(Arc_Circle(arc))
-        for intersection in intersections:
-            if Is_Point_In_Arc(intersection, arc):
-                unorganized_results.append(intersection.get_abs_angle())
-    if len(unorganized_results) != 2:
-        raise Exception("unable to handle limited_angle_range with intersections > 2")
-    #Organize the results as each entry is a start or an end
-    results = []
-    starts = []
-    ends = []
-    for angle in unorganized_results:
-        p = Angle_Vector(angle + 0.001, magnitude)
-        if arc_bounded_area_contains_point(arc_bounded_area, p):
-            #result is a start
-            starts.append(angle)
+        intersections = overlap_arc.get_arc_intersections(arc)
+        if len(intersections) > 0:
+            total_intersections.extend(intersections)
+
+    results = None
+    if len(total_intersections) == 0:
+        #Determine if the arc is completely inside or outside the area
+        if arc_bounded_area_contains_point(arc_bounded_area,
+                                           overlap_arc.get_first_point()):
+            #If a point on the arc is inside the area
+            # The entire arc range is inside the area
+            results = overlap_arc.get_limits()
         else:
-            #results is an end
-            ends.append(angle)
-    assert(len(starts) == len(ends))
-    for start in starts:
-        lowest_modified_end = None
-        unmodified_end = None
-        for end in ends:
-            modified_end = end - start
-            while modified_end < 0.0:
-                modified_end += (2 * pi)
-            if lowest_modified_end == None or \
-                modified_end < lowest_modified_end:
-                lowest_modified_end = modified_end
-                unmodified_end = end
-        results.append(start)
-        results.append(unmodified_end)  
+            results = None
+    elif len(total_intersections) == 1:
+        intersection_radians = overlap_arc.get_origin().get_angle(total_intersections[0])
+        #Determine which extreme is inside the arc
+        if arc_bounded_area_contains_point(arc_bounded_area,
+                                           overlap_arc.get_first_point()):
+            results = (overlap_arc.get_limits()[0], intersection_radians)
+        elif arc_bounded_area_contains_point(arc_bounded_area,
+                                             overlap_arc.get_last_point()):
+            results = (intersection_radians, overlap_arc.get_limits()[1])
+    elif len(total_intersections) == 2:
+        intersection_radians_1 = overlap_arc.get_origin().get_angle(total_intersections[0])
+        intersection_radians_2 = overlap_arc.get_origin().get_angle(total_intersections[1])
+        #TODO test for wrong order when 2 intersections
+        results = (intersection_radians_2, intersection_radians_1)
+    else:
+        #No other valid cases
+        raise Exception("Invalid number of intersections")
     return results
+        
     
 def limited_n_jointed_arm_ik(lengths, lower_limits, upper_limits,
                              weights, point):
@@ -200,7 +104,6 @@ def limited_n_jointed_arm_ik(lengths, lower_limits, upper_limits,
             bounded_range = limited_n_jointed_arm_range(lengths[index+1:],
                                                         lower_limits[index+1:],
                                                         upper_limits[index+1:])
-            
             '''
             low, upp = n_jointed_arm_range(lengths[index+1:])
             min_length_2 = max(low,

@@ -5,7 +5,7 @@ class Vector:
         self.x = x
         self.y = y 
     def __repr__(self):
-        return "(" + str(round(self.x, 3)) + ", " + \
+        return "Vector(" + str(round(self.x, 3)) + ", " + \
             str(round(self.y, 3)) + ")"
     def __eq__(self, other):
         return other != None and math.isclose(self.x, other.x, abs_tol=0.001) and \

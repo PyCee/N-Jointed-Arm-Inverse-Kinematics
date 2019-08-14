@@ -1,8 +1,9 @@
 import unittest
 from vector import Vector
 from n_jointed_arm_ik import OutOfRangeException, LengthException
-from limited_n_jointed_arm_ik import limited_n_jointed_arm_validity, limited_n_jointed_arm_range, limited_angle_range, limited_n_jointed_arm_ik, LimitsException
+from limited_n_jointed_arm_ik import limited_n_jointed_arm_validity, limited_n_jointed_arm_range, overlapping_arc_with_bounded_area_range, limited_n_jointed_arm_ik, LimitsException
 from recreate_point import recreate_point
+from arc import Arc
 
 from math import pi
 
@@ -43,6 +44,49 @@ class TestLimitedNJointValidityMethods(unittest.TestCase):
         self.assertFalse(limited_n_jointed_arm_validity([1, 1], [-d_90, d_0],
                                                         [d_90, d_90],
                                                         Vector(2.0, 1.0)))
+
+class TestOverlappingArcWithBoundedAreaRange(unittest.TestCase):
+    def test_fully_out_of_bounds(self):
+        arc = Arc(Vector(0.0, 0.0), 1.0, (d_0, d_90))
+        arc_bounded_area = limited_n_jointed_arm_range([1, 1],
+                                                       [d_0, d_0],
+                                                       [d_90, d_90])
+        
+        self.assertEqual(overlapping_arc_with_bounded_area_range(arc, arc_bounded_area),
+                         None)
+    def test_fully_within_bounds(self):
+        arc = Arc(Vector(0.5, 1.25), 0.5, (d_0, d_90))
+        arc_bounded_area = limited_n_jointed_arm_range([1, 1],
+                                                       [d_0, d_0],
+                                                       [d_90, d_90])
+        
+        self.assertEqual(overlapping_arc_with_bounded_area_range(arc, arc_bounded_area),
+                        arc.get_limits())
+    def test_one_intersection_end(self):
+        arc = Arc(Vector(0.0, 1.0), 0.5, (d_0, d_90))
+        arc_bounded_area = limited_n_jointed_arm_range([1, 1],
+                                                       [d_0, d_0],
+                                                       [d_90, d_90])
+        
+        self.assertEqual(overlapping_arc_with_bounded_area_range(arc, arc_bounded_area),
+                         (0.8480620789814817, arc.get_limits()[1]))
+    def test_one_intersection_start(self):
+        arc = Arc(Vector(0.0, 1.0), 0.5, (d_90, d_180))
+        arc_bounded_area = limited_n_jointed_arm_range([1, 1],
+                                                       [d_0, d_0],
+                                                       [d_90, d_90])
+        
+        self.assertEqual(overlapping_arc_with_bounded_area_range(arc, arc_bounded_area),
+                         (arc.get_limits()[0], 2.2935305746083117))
+    def test_two_intersections(self):
+        arc = Arc(Vector(-1.0, 1.0), 1.0, (d_0, d_90))
+        arc_bounded_area = limited_n_jointed_arm_range([1, 1],
+                                                       [d_0, d_0],
+                                                       [d_90, d_90])
+        self.assertEqual(overlapping_arc_with_bounded_area_range(arc, arc_bounded_area),
+                         (0.4240310394907399, 1.0471975511965979))
+        
+
         
 def limited_n_jointed_arm_test(lengths, lower_limits, upper_limits, point):
     try:
@@ -59,32 +103,18 @@ def limited_n_jointed_arm_test(lengths, lower_limits, upper_limits, point):
         return True
     except OutOfRangeException as e:
         raise e
-class TestLimitedAngleRange(unittest.TestCase):
-    def test(self):
-        arc_bounded_area = limited_n_jointed_arm_range([1, 1],
-                                                       [d_0, d_0],
-                                                       [d_90, d_90])
-        self.assertEqual(limited_angle_range(arc_bounded_area,
-                                             1.5),
-                         [0.7227342478134157, 2.293530574608312])
-        self.assertEqual(limited_angle_range(arc_bounded_area,
-                                             1.999),
-                         [0.03162409436563113, 1.6024204211605242])
-
-
-
 
 class TestLimitedNJointSolutionMethods(unittest.TestCase):
     def test_solution(self):
         '''
-self.assertTrue(limited_n_jointed_arm_test([1.0, 1.0],
+        self.assertTrue(limited_n_jointed_arm_test([1.0, 1.0],
                                                    [-d_90, -d_90], [d_90, d_90],
                                                    Vector(1.75, 0.0)))
         
         self.assertTrue(limited_n_jointed_arm_test([1.0, 1.0, 1.0],
-                                                   [-d_90, -d_90, -d_90],
+                                                   [d_0, d_0, d_0],
                                                    [d_90, d_90, d_90],
-                                                   Vector(1.75, 0.0)))
+                                                   Vector(-1.0, 1.0)))
         '''
     def test_failure(self):
         with self.assertRaises(OutOfRangeException):

@@ -63,6 +63,17 @@ class TestArcMethods(unittest.TestCase):
         self.assertEqual(Arc(Vector(0.0, 0.0), 1.0, (-d_45, -d_135)).get_extremes(),
                          [Vector(0.7071, -0.7071), Vector(-0.7071, -0.7071),
                           Vector(1.0, 0.0), Vector(-1.0, 0.0)])
+    def test_arc_intersections(self):
+        base_arc = Arc(Vector(0.0, 0.0), 1.0, (d_0, d_90))
+        self.assertEqual(base_arc.get_arc_intersections(Arc(Vector(0.0, 1.0), 1.0, (-d_90, d_0))),
+                         [Vector(0.866, 0.5)])
+        self.assertEqual(base_arc.get_arc_intersections(Arc(Vector(0.5, 0.5), 0.5, (-d_90, d_180))),
+                         [Vector(0.294, 0.956), Vector(0.956, 0.294)])
+        
+        self.assertEqual(base_arc.get_arc_intersections(Arc(Vector(0.0, 1.0), 1.0, (d_0, d_90))),
+                         [])
+
+    '''
     def test_break_range(self):
         # Is break range actually useful? I dont think its used
         self.assertEqual(Arc(Vector(0.0, 0.0), 1.0, (0.0, d_45)).get_break_range(),
@@ -83,4 +94,4 @@ class TestArcMethods(unittest.TestCase):
                          (5.282237233628814, None))
         self.assertEqual(Arc(Vector(0.0, 0.0), 1.0, (-d_45, d_90)).get_break_range(),
                          (None, None))
-         
+    '''
