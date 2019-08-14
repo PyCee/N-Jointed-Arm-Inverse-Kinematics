@@ -38,8 +38,8 @@ class TestArcMethods(unittest.TestCase):
         self.assertTrue(valid_angle_arc.is_valid_angle(d_0))
         self.assertTrue(valid_angle_arc.is_valid_angle(d_180))
         self.assertTrue(valid_angle_arc.is_valid_angle(-1.0 * d_180))
-        self.assertFalse(valid_angle_arc.is_valid_angle(d_90 - 0.000001))
-        self.assertFalse(valid_angle_arc.is_valid_angle(d_0 + 0.000001))
+        self.assertFalse(valid_angle_arc.is_valid_angle(d_90 - 0.00001))
+        self.assertFalse(valid_angle_arc.is_valid_angle(d_0 + 0.0001))
     def test_arc_point(self):
         point_arc = Arc(Vector(1.0, 1.0), 2.0, (0.0, d_270))
         self.assertEqual(point_arc.get_point(d_0), Vector(3.0, 1.0))

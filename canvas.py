@@ -46,20 +46,25 @@ class IK_Canvas(tkinter.Canvas):
         d_30 = d_180 / 6.0
         d_15 = d_180 / 12.0
         d_135 = d_45 * 3.0
-        length = 1.0
-        sweep = (0.0, d_90)
-        arcs = [Arc(Vector(0.0, 0.0), 1.0, (-d_90, d_90))]
-        arcs = sweep_area(arcs, length, sweep)
-        #arcs = sweep_area(arcs, length, sweep)
-        #arcs = sweep_area(arcs, length, sweep)
+    
+        from limited_n_jointed_arm_ik import limited_n_jointed_arm_range
+        '''
+        arcs = limited_n_jointed_arm_range([1.0, 1.0, 1.0],
+                                           [-d_90, -d_90, -d_90], [d_90, d_90, d_90])
+        '''
+        
+        arcs = [Arc(Vector(0.0, 0.0), 3.0, (0.0, 1.5707963)), Arc(Vector(0.0, 0.0), 1.0000000, (1.5707963, 3.1415926)), Arc(Vector(1.0, 0.0), 2.0, (0.0, 1.5707963)), Arc(Vector(2.0, 0.0), 1.0, (-1.570796, 0.0)), Arc(Vector(1.0, 0.0), 1.4142135, (-0.785398, 0.0)), Arc(Vector(0.0, 0.0), 2.2360679, (-0.463647, 0.4636476)), Arc(Vector(1.0, 1.0), 1.0, (1.5707963, 3.1415926)), Arc(Vector(1.0, 0.0), 1.4142135, (0.7853981, 2.3561944)), Arc(Vector(0.0, 1.0), 2.0, (1.5707963, 3.1415926)), Arc(Vector(0.0, 2.0), 1.0, (0.0, 1.5707963)), Arc(Vector(0.0, 1.0), 1.4142135, (1.5707963, 2.3561944)), Arc(Vector(0.0, 0.0), 2.2360679, (1.1071487, 2.0344439)), Arc(Vector(-1.0, 1.0), 1.0, (3.1415926, -1.570796)), Arc(Vector(0.0, 1.0), 1.4142135, (2.3561944, -2.356194))]
         #arcs = sweep_area(arcs, length, sweep)
         #arcs = sweep_area(arcs, length, sweep)
         #print(arcs)
         arcs = cull_arc_bounded_area(arcs)
+        arcs = sweep_area([Arc(Vector(0.0, 0.0), 1.0,
+                                         [-d_90, d_90])],
+                                    1.0, (0.0, d_90))
         #print(arcs)
         
         for arc in arcs:
-            self.draw_arc(arc)
+            pass#self.draw_arc(arc)
         
         
     '''END TMP'''

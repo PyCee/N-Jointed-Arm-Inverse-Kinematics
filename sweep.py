@@ -245,7 +245,6 @@ def sweep_area(list_of_arcs, length, limits):
 
     results += total_start_bounds
     results += total_final_bounds
-
     results = cull_arc_bounded_area(results)
     
     return results

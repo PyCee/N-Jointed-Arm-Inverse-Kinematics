@@ -64,9 +64,9 @@ class Arc:
         return result % (2.0 * pi)
         
     def is_valid_angle(self, radians):
-        limits_range = self.get_limit_range() * 1.0000001
+        limits_range = self.get_limit_range() * 1.00001
         moded_radians = (radians - self.__limits[0])
-        if fabs(moded_radians) < 0.00000001:
+        if fabs(moded_radians) < 0.000001:
             return True
         return moded_radians % (2.0 * pi) < limits_range
         
@@ -100,6 +100,14 @@ class Arc:
             except (InvalidArcRadianException):
                 pass
         return extremes
+    def get_tangent(self, point):
+        angle = self.__origin.get_angle(point)
+        if not self.is_valid_angle(angle):
+            print(self)
+            print(angle)
+            raise InvalidArcRadianException
+        return Arc_Radian((pi / 2.0) + angle)
+            
     def get_break_range(self):
         '''
         Calculates angle difference from origin (0, 0) for each extreme needed 

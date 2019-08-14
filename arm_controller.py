@@ -1,4 +1,4 @@
-from n_jointed_arm_ik import n_jointed_arm_ik, n_joint_range
+from n_jointed_arm_ik import n_jointed_arm_ik, n_jointed_arm_range
 from vector import Vector
 class InvalidArmControllerParameters(Exception):
     pass
@@ -39,7 +39,7 @@ class Arm_Controller:
             raise InvalidArmControllerParameters
         
         self.lengths = new_lengths
-        self.lower_bound, self.upper_bound = n_joint_range(self.lengths)
+        self.lower_bound, self.upper_bound = n_jointed_arm_range(self.lengths)
 
         if self.point == None:
             range = self.upper_bound - self.lower_bound
