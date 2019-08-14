@@ -103,8 +103,6 @@ class Arc:
     def get_tangent(self, point):
         angle = self.__origin.get_angle(point)
         if not self.is_valid_angle(angle):
-            print(self)
-            print(angle)
             raise InvalidArcRadianException
         return Arc_Radian((pi / 2.0) + angle)
             

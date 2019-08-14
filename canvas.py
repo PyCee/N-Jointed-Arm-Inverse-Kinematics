@@ -40,6 +40,7 @@ class IK_Canvas(tkinter.Canvas):
         
     
     def draw_arc_testing(self):
+        d_0 = 0.0
         d_180 = math.pi
         d_90 = d_180 / 2.0
         d_45 = d_180 / 4.0
@@ -57,14 +58,11 @@ class IK_Canvas(tkinter.Canvas):
         #arcs = sweep_area(arcs, length, sweep)
         #arcs = sweep_area(arcs, length, sweep)
         #print(arcs)
-        arcs = cull_arc_bounded_area(arcs)
-        arcs = sweep_area([Arc(Vector(0.0, 0.0), 1.0,
-                                         [-d_90, d_90])],
-                                    1.0, (0.0, d_90))
-        #print(arcs)
-        
+        arcs = limited_n_jointed_arm_range([1, 1],
+                                           [d_0, d_0],
+                                           [d_90, d_90])
         for arc in arcs:
-            pass#self.draw_arc(arc)
+                        self.draw_arc(arc)
         
         
     '''END TMP'''

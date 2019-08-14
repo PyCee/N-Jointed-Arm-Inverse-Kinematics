@@ -1,12 +1,13 @@
 import math
 import sys
-from vector import Vector
+from vector import Vector, Angle_Vector
+from circle import Circle
 from recreate_point import recreate_point
 from arc_bounded_area_contains import arc_bounded_area_contains_point
 from n_jointed_arm_ik import OutOfRangeException, LengthException, LengthsWeightsNotMatchException
 from two_jointed_arm_ik import two_jointed_arm_ik
 from sweep import sweep_area
-from arc import Arc
+from arc import Arc, Arc_Circle, Is_Point_In_Arc
 
 class LimitsException (Exception):
     pass
@@ -17,11 +18,14 @@ def limited_n_jointed_arm_range(lengths, lower_limits, upper_limits):
     '''
     if len(lengths) < 2:
         pass
-    if len(lengths) != len(lower_limits) or len(lengths) != len(upper_limits):
+    if len(lengths) != len(lower_limits) or \
+       len(lengths) != len(upper_limits):
         raise LimitsException
-    arcs = [Arc(Vector(0.0, 0.0), lengths[0], (lower_limits[0], upper_limits[0]))]
+    arcs = [Arc(Vector(0.0, 0.0), lengths[0],
+                (lower_limits[0], upper_limits[0]))]
     for i in range(1, len(lengths)):
-        arcs = sweep_area(arcs, lengths[i], (lower_limits[i], upper_limits[i]))
+        arcs = sweep_area(arcs, lengths[i],
+                          (lower_limits[i], upper_limits[i]))
     return arcs
 
 def limited_n_jointed_arm_validity(lengths, lower_limits, upper_limits,
@@ -130,6 +134,44 @@ def limited_n_jointed_arm_ik(lengths, lower_limits, upper_limits,
         point = point - offset
     return resulting_angles
 '''
+def limited_angle_range(arc_bounded_area, magnitude):
+    point_circle = Circle(Vector(0.0, 0.0), magnitude)
+    unorganized_results = []
+    for arc in arc_bounded_area:
+        intersections = point_circle.get_intersections(Arc_Circle(arc))
+        for intersection in intersections:
+            if Is_Point_In_Arc(intersection, arc):
+                unorganized_results.append(intersection.get_abs_angle())
+    if len(unorganized_results) != 2:
+        raise Exception("unable to handle limited_angle_range with intersections > 2")
+    #Organize the results as each entry is a start or an end
+    results = []
+    starts = []
+    ends = []
+    for angle in unorganized_results:
+        p = Angle_Vector(angle + 0.001, magnitude)
+        if arc_bounded_area_contains_point(arc_bounded_area, p):
+            #result is a start
+            starts.append(angle)
+        else:
+            #results is an end
+            ends.append(angle)
+    assert(len(starts) == len(ends))
+    for start in starts:
+        lowest_modified_end = None
+        unmodified_end = None
+        for end in ends:
+            modified_end = end - start
+            while modified_end < 0.0:
+                modified_end += (2 * pi)
+            if lowest_modified_end == None or \
+                modified_end < lowest_modified_end:
+                lowest_modified_end = modified_end
+                unmodified_end = end
+        results.append(start)
+        results.append(unmodified_end)  
+    return results
+    
 def limited_n_jointed_arm_ik(lengths, lower_limits, upper_limits,
                              weights, point):
     '''
@@ -154,6 +196,12 @@ def limited_n_jointed_arm_ik(lengths, lower_limits, upper_limits,
         a_1 = 0.0
         a_2 = 0.0
         if index < len(lengths)-2:
+            
+            bounded_range = limited_n_jointed_arm_range(lengths[index+1:],
+                                                        lower_limits[index+1:],
+                                                        upper_limits[index+1:])
+            
+            '''
             low, upp = n_jointed_arm_range(lengths[index+1:])
             min_length_2 = max(low,
                                math.fabs(point.magnitude() - length_1))
@@ -161,13 +209,13 @@ def limited_n_jointed_arm_ik(lengths, lower_limits, upper_limits,
             length_range = max_length_2 - min_length_2
             weighted_range = weights[index] * length_range
             length_2 = min_length_2 + weighted_range
+            '''
         # Run a two jointed arm ik to find the angle for this joint
         angles = two_jointed_arm_ik(length_1, length_2, point)
         if angles == None:
             return None
         a_1, a_2 = angles
 
-        # End of "if not point.magnitude() == 0.0:"
         # Store relative angle values
         resulting_angles[index] += a_1
         if index >= 1:

@@ -1,7 +1,7 @@
 import unittest
 from vector import Vector
 from n_jointed_arm_ik import OutOfRangeException, LengthException
-from limited_n_jointed_arm_ik import limited_n_jointed_arm_validity, limited_n_jointed_arm_ik, LimitsException
+from limited_n_jointed_arm_ik import limited_n_jointed_arm_validity, limited_n_jointed_arm_range, limited_angle_range, limited_n_jointed_arm_ik, LimitsException
 from recreate_point import recreate_point
 
 from math import pi
@@ -59,12 +59,28 @@ def limited_n_jointed_arm_test(lengths, lower_limits, upper_limits, point):
         return True
     except OutOfRangeException as e:
         raise e
+class TestLimitedAngleRange(unittest.TestCase):
+    def test(self):
+        arc_bounded_area = limited_n_jointed_arm_range([1, 1],
+                                                       [d_0, d_0],
+                                                       [d_90, d_90])
+        self.assertEqual(limited_angle_range(arc_bounded_area,
+                                             1.5),
+                         [0.7227342478134157, 2.293530574608312])
+        self.assertEqual(limited_angle_range(arc_bounded_area,
+                                             1.999),
+                         [0.03162409436563113, 1.6024204211605242])
+
+
+
+
 class TestLimitedNJointSolutionMethods(unittest.TestCase):
     def test_solution(self):
-        self.assertTrue(limited_n_jointed_arm_test([1.0, 1.0],
+        '''
+self.assertTrue(limited_n_jointed_arm_test([1.0, 1.0],
                                                    [-d_90, -d_90], [d_90, d_90],
                                                    Vector(1.75, 0.0)))
-        '''
+        
         self.assertTrue(limited_n_jointed_arm_test([1.0, 1.0, 1.0],
                                                    [-d_90, -d_90, -d_90],
                                                    [d_90, d_90, d_90],

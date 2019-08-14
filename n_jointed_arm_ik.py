@@ -72,8 +72,7 @@ def n_jointed_arm_ik(lengths, weights, point):
         if angles == None:
             return None
         a_1, a_2 = angles
-
-        # End of "if not point.magnitude() == 0.0:"
+        
         # Store relative angle values
         resulting_angles[index] += a_1
         if index >= 1:
