@@ -11,7 +11,7 @@ class InvalidArcRadianException (Exception):
 ARC_RADIAN_RANGE = (-1.0 * pi, pi)
 
 def Arc_Radian(radian):
-    while radian <= ARC_RADIAN_RANGE[0]:
+    while radian < ARC_RADIAN_RANGE[0]:
         radian += 2.0 * pi
     while radian > ARC_RADIAN_RANGE[1]:
         radian -= 2.0 * pi
@@ -29,10 +29,10 @@ class Arc:
         self.__limits = (Arc_Radian(limits[0]),
                          Arc_Radian(limits[1]))
         if self.__limits[0] == self.__limits[1]:
-            raise InvalidArcLimitsException("Limits: " + str(limits))
+            raise InvalidArcLimitsException("Limits are equal: " + str(limits))
         
     def __repr__(self):
-        output = "Arc(Vector"
+        output = "Arc("
         output += str(self.__origin) + ", "
         output += str(self.__radius)[:9] + ", ("
         output += str(self.__limits[0])[:9] + ", "
@@ -64,15 +64,15 @@ class Arc:
         return result % (2.0 * pi)
         
     def is_valid_angle(self, radians):
-        limits_range = self.get_limit_range() * 1.00001
+        limits_range = self.get_limit_range() * 1.000001
         moded_radians = (radians - self.__limits[0])
         if fabs(moded_radians) < 0.000001:
             return True
-        return moded_radians % (2.0 * pi) < limits_range
+        return moded_radians % (2.0 * pi) <= limits_range
         
     def get_point(self, angle):
         if not self.is_valid_angle(angle):
-            raise InvalidArcRadianException
+            raise InvalidArcRadianException("Arc Limits: " + str(self.__limits) + ", Angle: " + str(angle))
         return self.__origin + Angle_Vector(angle, self.__radius)
     def get_first_point(self):
         return self.get_point(self.__limits[0])

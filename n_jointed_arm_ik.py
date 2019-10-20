@@ -74,9 +74,8 @@ def n_jointed_arm_ik(lengths, weights, point):
         a_1, a_2 = angles
         
         # Store relative angle values
-        resulting_angles[index] += a_1
-        if index >= 1:
-            resulting_angles[index] -= sum(resulting_angles[:index])
+        resulting_angles[index] = a_1
+        resulting_angles[index] -= sum(resulting_angles[:index])
         if index == len(lengths)-2:
             resulting_angles[index+1] = a_2
             

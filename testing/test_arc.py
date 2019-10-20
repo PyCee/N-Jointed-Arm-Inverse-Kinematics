@@ -17,7 +17,7 @@ d_270 = d_180 + d_90
 class TestArcMethods(unittest.TestCase):
     def test_arc_radian(self):
         self.assertEqual(Arc_Radian(d_90), d_90)
-        self.assertEqual(Arc_Radian(d_180), Arc_Radian(-1.0 * d_180))
+        self.assertNotEqual(Arc_Radian(d_180), Arc_Radian(-1.0 * d_180))
         self.assertEqual(Arc_Radian(d_45), Arc_Radian(d_360 + d_45))
     def test_invalid_arc_radius_exception(self):
         with self.assertRaises(InvalidArcRadiusException):
@@ -25,8 +25,6 @@ class TestArcMethods(unittest.TestCase):
     def test_invalid_arc_limits_exception(self):
         with self.assertRaises(InvalidArcLimitsException):
             Arc(Vector(0.0, 0.0), 1.0, (d_45, d_45))
-        with self.assertRaises(InvalidArcLimitsException):
-            Arc(Vector(0.0, 0.0), 1.0, (-d_180, d_180))
     def test_arc_limit_range(self):
         o_vector = Vector(0.0, 0.0)
         self.assertEqual(Arc(o_vector, 1.0, (d_0, d_90)).get_limit_range(), d_90)

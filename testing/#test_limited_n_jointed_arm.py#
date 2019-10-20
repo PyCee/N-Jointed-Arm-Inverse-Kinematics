@@ -109,7 +109,7 @@ def limited_n_jointed_arm_test(lengths, lower_limits, upper_limits, point):
     try:
         for i in range(101):
             weight = i / 100.0
-            weight = 0.994
+            weight = 0.488605
             angles = limited_n_jointed_arm_ik(lengths,
                                               lower_limits, upper_limits,
                                               [weight] * (len(lengths) - 2), point)
