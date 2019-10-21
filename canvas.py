@@ -61,25 +61,12 @@ class IK_Canvas(tkinter.Canvas):
                                            [d_0, d_0, d_0],
                                            [d_90, d_90, d_90])
         
-        arcs = limited_n_jointed_arm_range([1, 1],
-                                           [d_0, d_0],
+        arcs2 = limited_n_jointed_arm_range([1, 1],
+                                           [-d_90, -d_90],
                                            [d_90, d_90])
-        from arc import Translate_Arc
-        arcs = [Translate_Arc(arc, 1.0) for arc in arcs]
-        from two_jointed_arm_ik import two_jointed_arm_ik
-        angs = two_jointed_arm_ik(1, 1, Vector(-1.661, 0.25))
-
-
-        tmp_vec = Vector(-1.0, 1.0)
-        angle_to_vector = Vector(0.0, 0.0).get_angle(tmp_vec)
-        vec = Angle_Vector(angle_to_vector - 0.994, tmp_vec.magnitude())
-        print("Angle to point: " + str(angle_to_vector))
-        #vec = Vector(-1.661, 0.25)
-        #print(arcs)
-        for arc in arcs:
+        for arc in arcs2:
             self.draw_arc(arc)
         
-        self.draw_point(vec)
         
         
     '''END TMP'''

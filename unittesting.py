@@ -6,7 +6,7 @@ from testing.test_two_jointed_arm import TestTwoJointValidityMethods, \
 from testing.test_n_jointed_arm import TestNJointValidityMethods, \
     TestNJointSolutionMethods
 from testing.test_limited_n_jointed_arm import TestLimitedNJointValidityMethods, \
-    TestLimitedNJointSolutionMethods, TestValidJointRange#TestOverlappingArcWithBoundedAreaRange, \
+    TestLimitedNJointSolutionMethods
 from testing.test_arc import TestArcMethods
 from testing.test_subdivision import TestSubdivisionMethods
 from testing.test_swept_arc_bounds import TestSweptArcBoundsMethods

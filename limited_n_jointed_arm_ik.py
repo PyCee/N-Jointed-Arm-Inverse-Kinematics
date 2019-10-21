@@ -37,45 +37,6 @@ def limited_n_jointed_arm_validity(lengths, lower_limits, upper_limits,
     arcs = limited_n_jointed_arm_range(lengths, lower_limits, upper_limits)
     return arc_bounded_area_contains_point(arcs, point)
 
-
-'''
-def overlapping_arc_with_bounded_area_range(overlap_arc, arc_bounded_area):
-    total_intersections = []
-    for arc in arc_bounded_area:
-        intersections = overlap_arc.get_arc_intersections(arc)
-        if len(intersections) > 0:
-            total_intersections.extend(intersections)
-
-    results = None
-    if len(total_intersections) == 0:
-        #Determine if the arc is completely inside or outside the area
-        if arc_bounded_area_contains_point(arc_bounded_area,
-                                           overlap_arc.get_first_point()):
-            #If a point on the arc is inside the area
-            # The entire arc range is inside the area
-            results = overlap_arc.get_limits()
-        else:
-            results = None
-    elif len(total_intersections) == 1:
-        intersection_radians = overlap_arc.get_origin().get_angle(total_intersections[0])
-        #Determine which extreme is inside the arc
-        if arc_bounded_area_contains_point(arc_bounded_area,
-                                           overlap_arc.get_first_point()):
-            results = (overlap_arc.get_limits()[0], intersection_radians)
-        elif arc_bounded_area_contains_point(arc_bounded_area,
-                                             overlap_arc.get_last_point()):
-            results = (intersection_radians, overlap_arc.get_limits()[1])
-    elif len(total_intersections) == 2:
-        intersection_radians_1 = overlap_arc.get_origin().get_angle(total_intersections[0])
-        intersection_radians_2 = overlap_arc.get_origin().get_angle(total_intersections[1])
-        #TODO test for wrong order when 2 intersections
-        results = (intersection_radians_2, intersection_radians_1)
-        #TODO handle case for an arc where both limits are inside the area, and go the long way around (leaving and entering the area)
-    else:
-        #No other valid cases
-        raise Exception("Invalid number of intersections")
-    return results
-'''
 def valid_joint_range(point, length, limits, arc_bounded_area):
     '''
     returns a tuple, where 
@@ -101,6 +62,7 @@ def valid_joint_range(point, length, limits, arc_bounded_area):
                          for inter in intersections]
     rads_to_point = [point_rad - rad for rad in intersection_rads]
     rads_to_point.sort()
+    rads_to_point = [r + limits[0] for r in rads_to_point]
 
     limits_range = limits[1] - limits[0]
     if rads_to_point[1] > limits_range:
@@ -137,23 +99,19 @@ def limited_n_jointed_arm_ik(lengths, lower_limits, upper_limits,
                                                        upper_limits[index+1:])
             arc = Arc(point, length_1,
                       (lower_limits[index], upper_limits[index]))
-            angle_tuple = valid_joint_range(point, length_1, (lower_limits[index], upper_limits[index]), bounded_area)
-            #end tmp
-            #FIX above TODO angle of first joint needs to be 0.99400 with weight of 0
-            # this is currently obtained with a weight of 0.488605
-            print("\nangle tuple: " + str(angle_tuple))
+            angle_tuple = valid_joint_range(point, length_1,
+                                            (lower_limits[index],
+                                             upper_limits[index]),
+                                            bounded_area)
+            
             angle_range = angle_tuple[1] - angle_tuple[0]
             #TODO work with cases where [0] > [1]
             
             weighted_range = weights[index] * angle_range
             weighted_angle = angle_tuple[0] + weighted_range
-            print("weighted_angle: " + str(weighted_angle))
             angles = (weighted_angle, None)
         else:
             # Run a two jointed arm ik to find the angle for this joint
-            print("two joint stuff")
-            print("point: " + str(point))
-            print("lengths: " + str((length_1, length_2)))
             angles = two_jointed_arm_ik(length_1, length_2, point)
             if angles == None:
                 return None
@@ -163,7 +121,14 @@ def limited_n_jointed_arm_ik(lengths, lower_limits, upper_limits,
                angles[0] > upper_limits[index]:
                 # If the angle doesnt fit our limits,
                 #   use the other two joint solution
-                angles = (-angles[0], -angles[1])
+                #   flipped around the vector to the point
+                ang_to_point = Vector(0.0, 0.0).get_angle(point)
+
+                #The second angle is simply negated because
+                #   it is relative to the first angle
+                angles = (ang_to_point - (angles[0] - ang_to_point),
+                          angles[1] * -1.0)
+                angles = (Arc_Radian(angles[0]), Arc_Radian(angles[1]))
             
         a_1, a_2 = angles
         # Store relative angle values
