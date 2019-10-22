@@ -5,6 +5,7 @@ from input_section import Input_Box, Input_Slider
 from arc import Arc, Translate_Arc, Rotate_Arc
 from sweep import sweep_area, get_swept_arc_subdivisions
 from cull_arc_bounded_area import cull_arc_bounded_area
+from limited_n_jointed_arm_ik import limited_n_jointed_arm_range
 import display_settings
 
 MAX_SCALE = 100
@@ -15,7 +16,7 @@ class IK_Canvas(tkinter.Canvas):
 
     '''TMP'''
 
-    def draw_arc(self, arc):
+    def draw_arc(self, arc, color):
         offset = self.size / 2.0
         center = arc.get_origin() + Vector(offset, offset)
         angle = arc.get_limits()[0] * 180.0 / 3.14159
@@ -26,7 +27,7 @@ class IK_Canvas(tkinter.Canvas):
                         center.y + arc.get_radius(),
                         start=angle,
                         extent=angle_range,
-                        fill="#333333",
+                        fill=color,
                         style="arc")
         r = 4.0 / self.scale_value
         first_point = arc.get_first_point() + Vector(offset, offset)
@@ -37,13 +38,13 @@ class IK_Canvas(tkinter.Canvas):
         self.create_oval(second_point.x - r, -r + second_point.y,
                          r + second_point.x, r + second_point.y, 
                          fill="#11f", width=0.0)
-    def draw_point(self, point):
+    def draw_point(self, point, fill_color):
         offset = self.size / 2.0
         r = 4.0 / self.scale_value
         point += Vector(offset, offset)
         self.create_oval(point.x - r, -r + point.y,
                          r + point.x, r + point.y, 
-                         fill="#f11", width=0.0)
+                         fill=fill_color, width=0.0)
         
     
     def draw_arc_testing(self):
@@ -56,20 +57,15 @@ class IK_Canvas(tkinter.Canvas):
         d_135 = d_45 * 3.0
     
         from limited_n_jointed_arm_ik import limited_n_jointed_arm_range
+
+        #TODO need to test this
+        arcs = limited_n_jointed_arm_range([1.0, 1.0],
+                                           [-3, -3],
+                                           [3, 3])
         
-        arcs = limited_n_jointed_arm_range([1, 1, 1],
-                                           [d_0, d_0, d_0],
-                                           [d_90, d_90, d_90])
+        #for arc in arcs:
+        #    self.draw_arc(arc)
         
-        arcs2 = limited_n_jointed_arm_range([1, 1],
-                                           [-d_90, -d_90],
-                                           [d_90, d_90])
-        for arc in arcs2:
-            self.draw_arc(arc)
-        
-        
-        
-    '''END TMP'''
 
 
     def __init__(self, root, size, position, get_arm_controller):
@@ -246,22 +242,13 @@ class IK_Canvas(tkinter.Canvas):
             end_point.x - cos_width, end_point.y - sin_width,
             start_point.x - cos_width, start_point.y - sin_width]
         self.create_polygon(points, fill="black")
-    def draw_arm_bounds(self, lower_bound, upper_bound, offset):
+    def draw_arm_bounds(self, arc_bounded_area):
         '''
         Draw arm bounds
         '''
-        BOUNDS_COLOR = "#555"
-        BOUNDS_SIZE = 2.0
-        self.create_oval(-lower_bound + offset,
-                         -lower_bound + offset,
-                         lower_bound + offset,
-                         lower_bound + offset, 
-                         fill="", outline=BOUNDS_COLOR, width=BOUNDS_SIZE)
-        self.create_oval(-upper_bound + offset,
-                         -upper_bound + offset,
-                         upper_bound + offset,
-                         upper_bound + offset, 
-                         fill="", outline=BOUNDS_COLOR, width=BOUNDS_SIZE)
+        BOUNDS_COLOR = "#fff"
+        for arc in arc_bounded_area:
+            self.draw_arc(arc, BOUNDS_COLOR)
 
     def draw_grid_lines(self, offset):
         '''
@@ -322,9 +309,7 @@ class IK_Canvas(tkinter.Canvas):
         if len(arm_controller.lengths) != 0:
             
             if display_settings.ShowArmBounds.get():
-                self.draw_arm_bounds(arm_controller.lower_bound,
-                                     arm_controller.upper_bound,
-                                     offset)
+                self.draw_arm_bounds(arm_controller.get_arc_bounded_area())
                 
             # Draw arms
             position = Vector(0.0, 0.0)

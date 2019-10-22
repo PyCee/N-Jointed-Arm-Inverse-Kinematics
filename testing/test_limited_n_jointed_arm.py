@@ -81,6 +81,10 @@ class TestLimitedNJointSolutionMethods(unittest.TestCase):
                                                    [-d_90, -d_90],
                                                    [d_90, d_90],
                                                    Vector(1.5, -1.0)))
+        self.assertTrue(limited_n_jointed_arm_test([1.0, 1.0],
+                                                   [-3.14159, -3.1415],
+                                                   [3.1, 3.14159],
+                                                   Vector(1.9, 0.0)))
     def test_two_jointed_second_solution(self):
         # Test solution where the second two-jointed_solution
         #   must be used to comply with angle limits

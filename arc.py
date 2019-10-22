@@ -103,9 +103,10 @@ class Arc:
     def get_tangent(self, point):
         angle = self.__origin.get_angle(point)
         if not self.is_valid_angle(angle):
-            print(self)
-            print(angle)
-            raise InvalidArcRadianException
+            output = "Exception getting tangent from arc: " + str(self) + \
+                     "\nWith point: " + str(point) + \
+                     " (angle: " + str(angle) + ")"
+            raise InvalidArcRadianException(output)
         return Arc_Radian((pi / 2.0) + angle)
     def get_arc_intersections(self, arc):
         intersections = Arc_Circle(self).get_intersections(Arc_Circle(arc))
@@ -137,8 +138,8 @@ def Rotate_Arc(arc, radians):
         new_origin = Angle_Vector(new_origin_angle, prev_origin_mag)
     else:
         new_origin = arc.get_origin()
-    new_limits = (arc.get_limits()[0] + radians,
-                  arc.get_limits()[1] + radians)
+    new_limits = (Arc_Radian(arc.get_limits()[0] + radians),
+                  Arc_Radian(arc.get_limits()[1] + radians))
     return Arc(new_origin, arc.get_radius(), new_limits)
 def Is_Point_In_Arc(point, arc):
     return arc.is_valid_angle(arc.get_origin().get_angle(point))

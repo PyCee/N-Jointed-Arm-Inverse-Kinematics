@@ -1,4 +1,5 @@
-from n_jointed_arm_ik import n_jointed_arm_ik, n_jointed_arm_range
+from limited_n_jointed_arm_ik import limited_n_jointed_arm_ik, limited_n_jointed_arm_range, limited_n_jointed_arm_validity, OutOfRangeException
+from recreate_point import recreate_point
 from vector import Vector
 class InvalidArmControllerParameters(Exception):
     pass
@@ -8,78 +9,92 @@ class Arm_Controller:
         self.has_set_point = False
         self.N = 0
         self.lengths = []
+        self.lower_limits = []
+        self.upper_limits = []
         self.weights = []
         self.point = None
         self.angles = []
-        self.upper_bound = 0.0
-        self.lower_bound = 0.0
         self.update_event = None
-    def get_bounds(self):
-        return n_joint_range(self.lengths)
+    def get_arc_bounded_area(self):
+        return limited_n_jointed_arm_range(self.lengths, self.lower_limits,
+                                           self.upper_limits)
+    
     def set_update_event(self, update_event):
         self.update_event = update_event
     def set_N(self, new_N):
         self.N = new_N
-            
-        self.lengths = self.lengths[:min(len(self.lengths), self.N)]
-        self.lengths += [1.0] * max(0, self.N - len(self.lengths))
-        
-        self.weights = self.weights[:min(len(self.weights), self.N)]
-        self.weights += [1.0] * max(0, self.N - len(self.weights))
 
+        def change_N_for_list(li, N, default_value):
+            li = li[:min(len(li), N)]
+            li += [default_value] * max(0, N - len(li))
+
+        change_N_for_list(self.lengths, self.N, 1.0)
+        change_N_for_list(self.lower_limits, self.N, -1.5)
+        change_N_for_list(self.upper_limits, self.N, 1.5)
+        change_N_for_list(self.weights, self.N, 0.7)
+        
         self.angles = [0.0] * self.N
         
-    def set_lengths(self, new_lengths):
+    def set_parameters(self, N, lengths, lower_limits, upper_limits,
+                           weights):
+        self.set_N(N)
+        self.set_lengths(lengths)
+        self.set_lower_limits(lower_limits)
+        self.set_upper_limits(upper_limits)
+        self.set_weights(weights)
+        #TODO make sure point is valid, or find a new valid point
+        if self.point == None or not \
+           limited_n_jointed_arm_validity(self.lengths, self.lower_limits,
+                                          self.upper_limits, self.point):
+            self.point = recreate_point(self.lengths, self.lower_limits)
+
+        self.update_angles()
+        
+    def set_lengths(self, lengths):
         '''
-        Set self.lengths and update associated values,
-        and update self.point with new bounds
+        Validate and set lengths
         '''
-        if len(new_lengths) != self.N:
-            print(self.N)
+        if len(lengths) != self.N:
+            raise InvalidArmControllerParameters("Lengths being set ('" +
+                                                 str(len(lengths)) +
+                                                 "') does not match ('" +
+                                                 str(self.N) + "')")
+        
+        self.lengths = lengths
+        
+    def set_lower_limits(self, lower_limits):
+        '''
+        Validate and set lower_limits
+        '''
+        if len(lower_limits) != self.N:
             raise InvalidArmControllerParameters
         
-        self.lengths = new_lengths
-        self.lower_bound, self.upper_bound = n_jointed_arm_range(self.lengths)
-
-        if self.point == None:
-            range = self.upper_bound - self.lower_bound
-            midway_point = self.lower_bound + range / 2
-            self.point = Vector(midway_point, 0.0)
-
-    def set_weights(self, new_weights):
+        self.lower_limits = lower_limits
+    def set_upper_limits(self, upper_limits):
         '''
-        Set self.weights and update angles with new weights
+        Validate and set upper_limits
         '''
-        if len(new_weights) != self.N - 2:
+        if len(upper_limits) != self.N:
             raise InvalidArmControllerParameters
         
-        self.weights = new_weights
+        self.upper_limits = upper_limits
+    def set_weights(self, weights):
+        '''
+        Validate and set weights
+        '''
+        if len(weights) != self.N - 2:
+            raise InvalidArmControllerParameters
+        
+        self.weights = weights
 
     def refresh_results(self):
         self.update_angles()
-
-    def bind_point(self):
-        '''
-        Calculate new self.point based on what is
-        within the range of self.lengths
-        '''
-        if not self.point is None:
-            point_mag = self.point.magnitude()
-            point_scale = 1.0
-            if point_mag < self.lower_bound:
-                modified_lower = self.lower_bound * 1.000000000000001
-                point_scale = modified_lower / point_mag
-            elif point_mag > self.upper_bound:
-                modified_upper = self.upper_bound * 0.999999999999999
-                point_scale = modified_upper / point_mag
-            self.point = self.point.scale(point_scale)
         
     def set_point(self, new_point):
         '''
         Update point and angles with new point
         '''
         self.point = new_point
-        self.bind_point()
         self.update_angles()
         
     def update_angles(self):
@@ -87,6 +102,16 @@ class Arm_Controller:
         Run inverse kinematics equations to update self.angles
         '''
         if not self.point is None:
-            self.angles = n_jointed_arm_ik(self.lengths,
-                                           self.weights, self.point)
-            self.update_event(self.angles)
+            try:
+                print("pre angles")
+                self.angles = limited_n_jointed_arm_ik(self.lengths,
+                                                       self.lower_limits,
+                                                       self.upper_limits,
+                                                       self.weights,
+                                                       self.point)
+                self.update_event(self.angles)
+                print("angles")
+            except (OutOfRangeException):
+                print("Out of range... oh well")
+            #self.angles = n_jointed_arm_ik(self.lengths,
+            #                               self.weights, self.point)
