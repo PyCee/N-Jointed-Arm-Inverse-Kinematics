@@ -1,11 +1,13 @@
 
-from n_jointed_arm_ik import *
+from n_jointed_arm.n_jointed_arm_ik import *
+from two_jointed_arm.two_jointed_arm_ik import two_joint_validity
 from vector import *
 from arc import Arc#, Arc_Get_Break_Range
-from sweep import get_swept_arc_subdivisions, get_swept_arc_bounds, sweep_area
-from circle import Circle
+from limited_arm.sweep import get_swept_arc_subdivisions, get_swept_arc_bounds, sweep_area
+from two_jointed_arm.circle import Circle
+from n_jointed_arm.n_jointed_arm_ik import n_joint_validity, n_jointed_arm_limit_ik
 from math import pi, fabs, trunc
-from cull_arc_bounded_area import cull_arc_bounded_area
+from limited_arm.cull_arc_bounded_area import cull_arc_bounded_area
 import sys
 
 test_list = []

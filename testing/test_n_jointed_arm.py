@@ -1,6 +1,6 @@
 import unittest
 from vector import Vector
-from n_jointed_arm_ik import n_jointed_arm_validity, n_jointed_arm_ik, recreate_point, OutOfRangeException, LengthException
+from n_jointed_arm.n_jointed_arm_ik import n_jointed_arm_validity, n_jointed_arm_ik, recreate_point, OutOfRangeException, LengthException
 
 def n_jointed_arm_test(lengths, point):
     try:

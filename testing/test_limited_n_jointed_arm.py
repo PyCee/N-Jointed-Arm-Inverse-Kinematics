@@ -1,8 +1,8 @@
 import unittest
 from vector import Vector
-from n_jointed_arm_ik import OutOfRangeException, LengthException
-from limited_n_jointed_arm_ik import limited_n_jointed_arm_validity, limited_n_jointed_arm_range, limited_n_jointed_arm_ik, LimitsException, valid_joint_range
-from recreate_point import recreate_point
+from n_jointed_arm.n_jointed_arm_ik import OutOfRangeException, LengthException
+from limited_arm.limited_n_jointed_arm_ik import limited_n_jointed_arm_validity, limited_n_jointed_arm_range, limited_n_jointed_arm_ik, LimitsException, valid_joint_range
+from n_jointed_arm.recreate_point import recreate_point
 from arc import Arc
 
 from math import pi

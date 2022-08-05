@@ -1,5 +1,5 @@
 import unittest
-import circle
+import two_jointed_arm.circle as circle
 from vector import Vector
 
 class TestCircleMethods(unittest.TestCase):

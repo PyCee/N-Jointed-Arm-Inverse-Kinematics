@@ -1,6 +1,6 @@
 
 from vector import Vector
-from circle import Circle
+from two_jointed_arm.circle import Circle
 
 class TwoJointOutOfRangeException (Exception):
     pass
@@ -8,7 +8,7 @@ class TwoJointLengthException (Exception):
     pass
 def two_joint_range(length_1, length_2):
     '''
-    return the lower and upper ranges of motionthe two jointed arm
+    return the lower and upper ranges of the two jointed arm
     '''
     lower = max([length_1, length_2]) - min([length_1, length_2])
     upper = length_1 + length_2

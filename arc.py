@@ -1,6 +1,6 @@
 from math import pi, sin, cos, fabs
 from vector import Vector, Angle_Vector
-from circle import Circle
+from two_jointed_arm.circle import Circle
 
 class InvalidArcRadiusException (Exception):
     pass

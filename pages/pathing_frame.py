@@ -1,106 +1,212 @@
+import os
 import tkinter
-from tkinter import ttk
+from tkinter import END, Checkbutton, PhotoImage, ttk
+from turtle import color
+from pages.pathing.tree_entry import Tree_Entry
 from vector import Vector
-from path_controller import Piecewise_Function, Path_Controller
+from pages.pathing.path import Path
+from pages.pathing.piecewise_function import Piecewise_Function
+import display_settings
 
+COL_START_T = '#1'
+COL_END_T = '#2'
+COL_X = '#3'
+COL_Y = '#4'
+COL_END_POINT = '#5'
 
-class Pathing_Frame_Alter(tkinter.Toplevel):
-    def __init__(self, frame, item, old_t, old_x, old_y):
-        self.page_frame = frame
-        self.item = item
-        super().__init__(frame)
-        self.wm_title("Alter Row")
-        self.geometry("320x120+0+0")
-        
-        t_label = tkinter.Label(self, text="t-range")
-        t_label.place(x=20, y=10)
-        x_label = tkinter.Label(self, text="x function")
-        x_label.place(x=20, y=34)
-        y_label = tkinter.Label(self, text="y function")
-        y_label.place(x=20, y=58)
-
-        self.t_entry = tkinter.Entry(self, width=24,justify="center")
-        self.t_entry.insert(0, old_t)
-        self.t_entry.place(x=100, y=10)
-        self.x_entry = tkinter.Entry(self, width=24,justify="center")
-        self.x_entry.insert(0, old_x)
-        self.x_entry.place(x=100, y=34)
-        self.y_entry = tkinter.Entry(self, width=24,justify="center")
-        self.y_entry.insert(0, old_y)
-        self.y_entry.place(x=100, y=58)
-        
-        set_row_button = tkinter.Button(self, text="Update Row",
-                                        command=self.set_row)
-        set_row_button.place(x=100, y=82)
-        
-    def set_row(self):
-        values = (str(self.t_entry.get()),
-                  str(self.x_entry.get()),
-                  str(self.y_entry.get()))
-        self.page_frame.set_tree_row(self.item, values)
-        self.destroy()
+COL_WIDTHS = {COL_START_T: 75,
+                COL_END_T: 75,
+                COL_X: 150,
+                COL_Y: 150,
+                COL_END_POINT: 75}
+EDITABLE_COL = [COL_START_T, COL_END_T, COL_X, COL_Y]
 
 class Pathing_Frame(tkinter.Frame):
     def __init__(self, root, update_point_event):
         super().__init__(root, width=1000, height=1000)
 
-        self.path_controller = None
+        self.path = None
         self.timing_job = None
         self.update_point_event = update_point_event
-        
+        self.current_tree_entry = None
 
-        self.tree = ttk.Treeview(self, columns=("T", "X", "Y"),
+        self.tree = ttk.Treeview(self, columns=("start_t", "end_t", "X", "Y", "end_point"),
                                  show="headings", height=0)
         self.tree.bind("<Double-1>", self.on_row_select)
-        self.tree.place(x=5, y=5)
-        self.tree.column("T", width=200, anchor='c')
-        self.tree.column("X", width=200, anchor='c')
-        self.tree.column("Y", width=200, anchor='c')
-        self.tree.heading("T", text="T")
+        self.tree.place(x=55, y=45)
+        self.tree.column("start_t", width=COL_WIDTHS[COL_START_T], anchor='c')
+        self.tree.column("end_t", width=COL_WIDTHS[COL_END_T], anchor='c')
+        self.tree.column("X", width=COL_WIDTHS[COL_X], anchor='c')
+        self.tree.column("Y", width=COL_WIDTHS[COL_Y], anchor='c')
+        self.tree.column("end_point", width=COL_WIDTHS[COL_END_POINT], anchor='c')
+        self.tree.heading("start_t", text="Start")
+        self.tree.heading("end_t", text="End")
         self.tree.heading("X", text="X")
         self.tree.heading("Y", text="Y")
+        self.tree.heading("end_point", text="End Point")
         
-        self.set_key_point_button = tkinter.Button(self,
+        self.setup_text()
+
+        
+        self.add_row_BTN = tkinter.Button(self, text="Add New Row")
+        self.add_row_BTN.config(command=self.on_row_append)
+        self.update_new_row_button_position()
+
+        self.start_path_BTN = tkinter.Button(self,
                                                    text="Start Path")
-        self.set_key_point_button.config(command=self.start_path)
-        self.set_key_point_button.place(x=20, y=240)
+        self.start_path_BTN.config(command=self.start_path)
+        self.start_path_BTN.place(x=650, y=15)
         
-        self.add_row_b = tkinter.Button(self, text="Add New Row")
-        self.add_row_b.config(command=self.on_row_append)
-        self.add_row_b.place(x=20, y=270)
+        self.loop_path_CB = Checkbutton(self,
+                                         variable=display_settings.LoopPath,
+                                         text="Loop Path")
+        self.loop_path_CB.place(x=630, y=40)
+
+        self.initialize_default()
+
+    def setup_text(self):
+        self.setup_single_text(COL_X, "Ex: 1 + cos(t * 2 * pi) / 2")
+        self.setup_single_text(COL_Y, "Ex: sin(t * 2 * pi) / 2")
+
+    def setup_single_text(self, col, text):
+        text_label = tkinter.Label(self,
+            state="disabled", justify=tkinter.LEFT , text=text)
+        
+        x = self.get_x_offset_of_col(col) + 5
+        y = self.tree.winfo_rooty() - 25
+        width = COL_WIDTHS[col] - 10
+
+        text_label.place(in_=self.tree, x=x, y=y, anchor='nw', width=width)
+
+    def get_x_offset_of_col(self, col):
+        #TODO: does python iterate over dicts in order?
+        x_offset = 0
+        for key in COL_WIDTHS:
+            if key == col:
+                break
+            x_offset += COL_WIDTHS[key]
+        return x_offset
+
+    def initialize_default(self):
+        default_values = (0, 1, "1 + cos(t * 2 * pi) / 2", "sin(t * 2 * pi) / 2")
+        iid = self.add_tree_row(default_values)
+        self.update_end_t(iid)
+
+    def validate_row(self, iid):
+        values = self.tree.set(iid)
+        if values["start_t"] >= values["end_t"]:
+            #TODO: big red error
+            pass
+        cur_row = self.get_piecewise_function(iid)
+        prev_row = self.get_piecewise_function(self.tree.prev(iid))
+        next_row = self.get_piecewise_function(self.tree.next(iid))
+        if prev_row.get_end_point() != cur_row.get_start_point():
+            #TODO warning
+            pass
+        if cur_row.get_end_point() != next_row.get_start_point():
+            #TODO: warning
+            pass
+
+        return Piecewise_Function(values["start_t"], values["end_t"], values["X"], values["Y"])
         
     def on_row_select(self, e):
-        item = self.tree.selection()[0]
-        old_t, old_x, old_y = self.tree.item(item, "values")
-        alter_win = Pathing_Frame_Alter(self, item, old_t, old_x, old_y)
+        iid = self.tree.focus()
+        col = self.tree.identify_column(e.x)
+        if col not in EDITABLE_COL:
+            return
+        self.current_tree_entry = Tree_Entry(self, iid, col)
+    
+    def set_value(self, iid, col, value):
+        '''
+        Used to set value in the tree. Called directly by Tree_Entry.
+        Updates read-only values.
+        '''
+        self.current_tree_entry = None
+        self.tree.set(iid, col, value)
+        self.update_end_t(iid)
+
+    def flush_tree_entry(self):
+        if self.current_tree_entry != None:
+            self.current_tree_entry.entry_focus_out()
+
+    def update_end_t(self, iid):
+        func = self.get_piecewise_function(iid)
+        end_point = func.get_end_point()
+        end_point_str = "(" + str(round(end_point.x, 2)) + ", " + str(round(end_point.y)) + ")"
+        self.tree.set(iid, COL_END_POINT, end_point_str)
+
+    def get_piecewise_function(self, iid):
+        values = self.tree.set(iid)
+        return Piecewise_Function(values["start_t"], values["end_t"], values["X"], values["Y"])
+
     def on_row_append(self):
-        alter_win = Pathing_Frame_Alter(self, None, "", "", "")
+        items = self.tree.get_children(None)
+        new_start = 0
+        if len(items) > 0:
+            new_start = self.tree.set(items[len(items) - 1], COL_END_T)
+
+        default_values = (new_start,
+                        float(new_start) + 1,
+                        "",
+                        "")
+        self.add_tree_row(default_values)
         
-    def set_tree_row(self, item, new_values):
-        if item != None:
-            self.tree.delete(item)
-        else:
-            prev_height = self.tree.cget('height')
-            self.tree.config(height=prev_height+1)
-        self.tree.insert("", 'end', values=new_values)
+    def add_tree_row(self, new_values):
         
-    def start_path(self):
-        self.path_controller = Path_Controller()
-        self.path_controller.set_update_point_event(self.update_point_event)
-        for item in self.tree.get_children():
-            values = self.tree.item(item)['values']
-            func = Piecewise_Function(str(values[0]),
-                                      str(values[1]),
-                                      str(values[2]))
-            self.path_controller.add_piecewise_function(func)
+        new_row_index = self.tree.cget('height')
+        self.tree.config(height=new_row_index+1)
+        iid = self.tree.insert("", 'end', values=new_values)
+
+        pixel = tkinter.PhotoImage(width=1, height=1)
+        #TODO: add "remove row"
+        play_event = lambda self=self: self.play_piecewise_row(new_row_index)
+        play_button = tkinter.Button(self, image=pixel, text=">", fg="#4D4", width=16, height=16, compound="center", padx=0, pady=0, command=play_event)
+        play_button.image = pixel
+        
+        test = self.tree.item(iid)
+        play_button.place(in_=self.tree, x=-30, y=25 + 20 * new_row_index)
+        self.update_new_row_button_position()
+        return iid
+    def update_new_row_button_position(self):
+        x = 200
+        num_rows = self.tree.cget('height')
+        y = 40 + 20 * num_rows
+        self.add_row_BTN.place(in_=self.tree, x=x, y=y)
+
+    def get_iid_from_index(self, index):
+        return self.tree.get_children(None)[index]
+
+    def play_piecewise_row(self, index):
+        self.start_path([self.get_iid_from_index(index)])
+
+    def start_path(self, function_indexes=None):
+        self.flush_tree_entry()
+        path_functions = self.get_path_functions(function_indexes)
+        self.path = Path(path_functions)
+        self.__dt = self.path.get_start()
         
         if self.timing_job != None:
             self.after_cancel(self.timing_job)
         self.timing_job = self.after(10, self.update_path)
-        
+
+    def get_path_functions(self, function_indexes = None):
+        functions = []
+        if function_indexes == None:
+            function_indexes = self.tree.get_children(None)
+        for iid in function_indexes:
+            functions.append(self.get_piecewise_function(iid))
+        return functions
+
     def update_path(self):
-        self.path_controller.step(0.01)
-        if not self.path_controller.is_finished():
+        duration = self.path.get_duration()
+        if self.__dt > duration:
+            if display_settings.LoopPath.get():
+                self.__dt = 0
+            else:
+                self.__dt = duration
+        if self.__dt < duration:
             self.timing_job = self.after(10, self.update_path)
-        else:
-            self.timing_job = None
+        
+        point = self.path.get_point(self.__dt)
+        self.update_point_event(point)
+        self.__dt += 0.01

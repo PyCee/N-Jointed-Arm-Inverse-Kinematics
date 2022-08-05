@@ -1,9 +1,9 @@
 import math
 import sys
 from vector import Vector
-from circle import Circle
-from recreate_point import recreate_point
-from two_jointed_arm_ik import two_jointed_arm_ik
+from two_jointed_arm.circle import Circle
+from n_jointed_arm.recreate_point import recreate_point
+from two_jointed_arm.two_jointed_arm_ik import two_jointed_arm_ik
 
 class OutOfRangeException (Exception):
     pass

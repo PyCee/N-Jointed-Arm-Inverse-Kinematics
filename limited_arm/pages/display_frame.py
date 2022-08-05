@@ -3,8 +3,6 @@ from tkinter import Checkbutton, Radiobutton
 from vector import Vector
 import display_settings
 
-global Active_Display_Frame
-
 class Display_Frame(tkinter.Frame):
     def __init__(self, root):
         super().__init__(root, width=1000, height=1000)

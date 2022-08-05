@@ -1,7 +1,7 @@
 import unittest
 from vector import Vector
 from arc import Arc
-from sweep import sweep_area
+from limited_arm.sweep import sweep_area
 
 from math import pi
 

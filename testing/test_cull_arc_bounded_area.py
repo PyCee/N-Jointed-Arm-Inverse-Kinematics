@@ -1,7 +1,7 @@
 import unittest
 from vector import Vector
 from arc import Arc
-from cull_arc_bounded_area import cull_arc_bounded_area
+from limited_arm.cull_arc_bounded_area import cull_arc_bounded_area
 
 from math import pi
 

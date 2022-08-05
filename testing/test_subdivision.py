@@ -1,7 +1,7 @@
 import unittest
 from vector import Vector
 from arc import Arc
-from sweep import get_swept_arc_subdivisions
+from limited_arm.sweep import get_swept_arc_subdivisions
 
 from math import pi
 

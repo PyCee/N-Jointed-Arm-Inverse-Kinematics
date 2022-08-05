@@ -1,5 +1,5 @@
 import tkinter
-from n_jointed_arm_ik import Vector
+from n_jointed_arm.n_jointed_arm_ik import Vector
 
 
 class Input_Section:

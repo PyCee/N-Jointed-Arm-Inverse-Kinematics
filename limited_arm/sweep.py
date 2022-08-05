@@ -1,8 +1,8 @@
 from math import sin, cos, tan, fabs, acos, asin, pi
 from vector import Vector, Angle_Vector
-from circle import Circle
+from two_jointed_arm.circle import Circle
 from arc import Arc, Translate_Arc, Rotate_Arc, Arc_Circle
-from cull_arc_bounded_area import cull_arc_bounded_area
+from limited_arm.cull_arc_bounded_area import cull_arc_bounded_area
 
 def sweep_arc(arc, angle, length):
     result = Translate_Arc(arc, length)

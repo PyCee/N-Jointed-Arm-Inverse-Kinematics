@@ -1,7 +1,7 @@
 import unittest
 from vector import Vector
-from two_jointed_arm_ik import two_joint_validity, two_jointed_arm_ik, TwoJointOutOfRangeException, TwoJointLengthException
-from recreate_point import recreate_point
+from two_jointed_arm.two_jointed_arm_ik import two_joint_validity, two_jointed_arm_ik, TwoJointOutOfRangeException, TwoJointLengthException
+from n_jointed_arm.recreate_point import recreate_point
 
 def two_joint_test(length1, length2, point):
     try:
@@ -9,7 +9,7 @@ def two_joint_test(length1, length2, point):
                                     length2, point)
         if point != recreate_point([length1, length2], angles):
             print("Failed to recreate point from two joint solution: ")
-            print("\tLengths: " + str((length_1), length_2))
+            print("\tLengths: " + str((length1), length2))
             print("\tCalculated Angles: " + str(angles))
             print("\tRecreated Point: " + str(point))
             return False

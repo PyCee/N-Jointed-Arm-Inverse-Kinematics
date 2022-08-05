@@ -1,8 +1,8 @@
 import unittest
 from vector import Vector
 from arc import Arc
-from sweep import sweep_area
-from arc_bounded_area_contains import get_x_intercepts, arc_bounded_area_contains_point
+from limited_arm.sweep import sweep_area
+from limited_arm.arc_bounded_area_contains import get_x_intercepts, arc_bounded_area_contains_point
 
 from math import pi
 

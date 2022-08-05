@@ -1,12 +1,12 @@
 import math
 import sys
 from vector import Vector, Angle_Vector
-from circle import Circle
-from recreate_point import recreate_point
-from arc_bounded_area_contains import arc_bounded_area_contains_point
-from n_jointed_arm_ik import OutOfRangeException, LengthException, LengthsWeightsNotMatchException
-from two_jointed_arm_ik import two_jointed_arm_ik
-from sweep import sweep_area, sweep_arc
+from two_jointed_arm.circle import Circle
+from n_jointed_arm.recreate_point import recreate_point
+from limited_arm.arc_bounded_area_contains import arc_bounded_area_contains_point
+from n_jointed_arm.n_jointed_arm_ik import OutOfRangeException, LengthException, LengthsWeightsNotMatchException
+from two_jointed_arm.two_jointed_arm_ik import two_jointed_arm_ik
+from limited_arm.sweep import sweep_area, sweep_arc
 from arc import Arc, Arc_Circle, Is_Point_In_Arc, Arc_Radian
 
 class LimitsException (Exception):
