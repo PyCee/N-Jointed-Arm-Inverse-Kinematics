@@ -34,7 +34,7 @@ def draw_length(self, position, length, absolute_radians, relative_radians,
         if display_settings.ShowAngleText.get():
             # Draw text to show angles
             text_distance = 0.5
-            text_radians = absolute_radians + 1.7676#relative_radians / 2.0
+            text_radians = absolute_radians + 1.7676
             text_base = Vector(math.cos(text_radians),
                             math.sin(text_radians)).scale(text_distance)
             text_base = text_base + start_point
@@ -49,6 +49,17 @@ def draw_length(self, position, length, absolute_radians, relative_radians,
                              font=("Times", 10, "bold"), fill="black",
                              anchor="s", text=str(round(draw_angle, 2)) + end_text)
         
+        if(display_settings.ShowLengthText.get()):
+            # Draw text to show angles
+            text_distance = 0.25
+            text_radians = absolute_radians + 1.7676
+            text_base = Vector(math.cos(text_radians),
+                            math.sin(text_radians)).scale(text_distance)
+            text_base = text_base + start_point + offset.scale(0.5)
+            self.create_text(text_base.x, text_base.y,
+                             font=("Times", 10, "bold"), fill="black",
+                             anchor="s", text=str(length))
+
         # Draw rectangle to represent arm
         points = [
             start_point.x + cos_width, start_point.y + sin_width,

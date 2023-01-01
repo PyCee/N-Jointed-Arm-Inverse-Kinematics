@@ -7,7 +7,7 @@ def draw_grid_lines(canvas, offset):
 	grid_line_offset = canvas.get_grid_offset()
 	half_line_width = 0.75 / canvas.scale_value
 	GRID_COLOR = "#CCC"
-	text_color = "#333"
+	text_color = "#888"
 	for i in range(-6, 7):
 		line_value = grid_line_offset * i
 		upper_line_value = line_value + half_line_width

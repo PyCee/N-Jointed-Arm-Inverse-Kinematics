@@ -40,11 +40,19 @@ class Display_Frame(tkinter.Frame):
         self.angle_arc_CB = Checkbutton(self, 
                                         variable=display_settings.ShowAngleArc,
                                         text="Show Angle Arc")
+        self.length_text_CB = Checkbutton(self,
+                                         variable=display_settings.ShowLengthText,
+                                         text="Show Length Text")
+        self.endpoint_coords_display_CB = Checkbutton(self, 
+                                        variable=display_settings.ShowEndPointCoords,
+                                        text="Show Endpoint Coordinates")
         self.fit_arm_button = tkinter.Button(self, text="Fit Arm")
 
         elements = [self.grid_lines_CB, self.grid_numbers_CB,
                     self.arm_bounds_CB, self.angle_text_CB,
-                    self.angle_arc_CB, self.fit_arm_button]
+                    self.angle_arc_CB, self.length_text_CB,
+                    self.endpoint_coords_display_CB,
+                    self.fit_arm_button]
         for i in range(len(elements)):
             elements[i].place(x=200, y=10 + i * 20)
         
@@ -57,6 +65,9 @@ class Display_Frame(tkinter.Frame):
         self.arm_bounds_CB.config(command=canvas.update)
         self.angle_text_CB.config(command=canvas.update)
         self.angle_arc_CB.config(command=canvas.update)
+        self.length_text_CB.config(command=canvas.update)
+        self.endpoint_coords_display_CB.config(command=canvas.update)
+
         self.fit_arm_button.config(command=canvas.scale_to_fit_arm)
         
     def refresh_angle_elements(self):

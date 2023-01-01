@@ -104,6 +104,7 @@ class IK_Canvas(tkinter.Canvas):
         
         self.get_arm_controller().set_point(new_point)
         self.update_point_display()
+        self.update()
 
     def update_scale(self, event):
         self.scale_value = self.scale_slider.get() * 0.99 * MAX_SCALE + (MAX_SCALE * 0.01)
@@ -152,6 +153,14 @@ class IK_Canvas(tkinter.Canvas):
             # Draw arms
             draw_arm(self, arm_controller, offset)
         
+        if(display_settings.ShowEndPointCoords.get()):
+            coords_offset = 0.075
+            self.create_text(offset + arm_controller.point.x + coords_offset, offset + arm_controller.point.y - coords_offset,
+								font=("Times", 10, "bold"), 
+								fill="#333",
+								anchor="nw", 
+								text=str(arm_controller.point))
+
         #TMP
         #self.draw_arc_testing()
         #END TMP
